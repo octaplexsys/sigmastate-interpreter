@@ -1,0 +1,455 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"  
+  "http://www.w3.org/TR/html4/loose.dtd">  
+<html > 
+<head><title>An Overview of Autolykos, the Ergo PoW</title> 
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"> 
+<meta name="generator" content="TeX4ht (http://www.cse.ohio-state.edu/~gurari/TeX4ht/)"> 
+<meta name="originator" content="TeX4ht (http://www.cse.ohio-state.edu/~gurari/TeX4ht/)"> 
+<!-- html --> 
+<meta name="src" content="pow_overview.tex"> 
+<meta name="date" content="2019-07-21 23:19:00"> 
+<link rel="stylesheet" type="text/css" href="pow_overview.css"> 
+</head><body 
+>
+   <div class="maketitle">
+                                                                  
+
+                                                                  
+   <a 
+ id="likesection.1"></a><a 
+ id="x1-2r1"></a>
+                                                                  
+
+                                                                  
+                                                                  
+
+                                                                  
+
+<h2 class="titleHead">An Overview of Autolykos, the Ergo PoW</h2>
+<div class="author" >Developers</div>
+<div class="institute"><span 
+class="cmr-9">Ergo Platform</span></div>
+<a 
+ id="Q1-1-1"></a>
+<a 
+ id="Q1-1-2"></a>
+   </div>
+   <div 
+class="abstract" 
+>
+     <span 
+class="cmbx-9">Abstract.</span> <span 
+class="cmr-9">In  this  article,  we  give  an  overview  of  Autolykos,  the</span>
+     <span 
+class="cmr-9">Proof-of-Work (PoW) algorithm used in Ergo. We briefly discuss mining</span>
+     <span 
+class="cmr-9">and  various  unique  aspects  of  the  protocol,  such  as  </span><span 
+class="cmti-9">pool  resistance</span>
+     <span 
+class="cmr-9">(preventing mining coalitions among mutually distrusting parties). We</span>
+     <span 
+class="cmr-9">also discuss ways to &#8220;break&#8221; this pool-resistance and create mining pools.</span>
+</div>
+   <h3 class="sectionHead"><span class="titlemark">1   </span> <a 
+ id="x1-10001"></a>Introduction</h3>
+<!--l. 100--><p class="noindent" >Ergo<span class="footnote-mark"><a 
+href="pow_overview2.html#fn1x0"><sup class="textsuperscript">1</sup></a></span><a 
+ id="x1-1001f1"></a> 
+is a smart contract platform running on its own blockchain. It provides a
+high-level language called ErgoScript used for writing contracts featuring
+Ethereum-like functionality but more closer to Bitcoin in the underlying design.
+For instance, it is based on short-lived objects (called UTXOs in Bitcoin
+and <span 
+class="cmti-10">boxes </span>in Ergo) instead of long-lived accounts to store data and code. It
+also has some features different from both Bitcoin and Ethereum relating to
+scalability and long-term survivability. For instance, it has a <span 
+class="cmti-10">storage-rent</span>
+component, so that boxes must pay rent to continue staying on the blockchain.
+Secondly, it allows running a fully verifying node on low-power devices using an
+idea called <span 
+class="cmti-10">Non-interactive Proofs-of-proofs of Work</span>&#x00A0;<span class="cite">[<a 
+href="#Xkiayias2017non">1</a>]</span>. Finally, it uses a
+PoW algorithm called Autolykos&#x00A0;<span class="cite">[<a 
+href="#Xautolykos">2</a>]</span> that discourages mining-pool formation,
+which we informally term <span 
+class="cmti-10">pool-resistance</span>. This article gives an overview of
+Autolykos.
+<!--l. 102--><p class="indent" >   We assume that the reader is familiar with the basic structure of Bitcoin
+transactions and knows the terms such as UTXOs, inputs and outputs. Additionally,
+                                                                  
+
+                                                                  
+the reader is assumed to have some knowledge of how Bitcoin outputs are
+protected (locked) by scripts and how the spender unlocks them. Before
+getting into Autolykos, it is useful to understand the design of Bitcoin&#8217;s
+PoW.
+   <h3 class="sectionHead"><span class="titlemark">2   </span> <a 
+ id="x1-20002"></a>Bitcoin PoW</h3>
+<!--l. 107--><p class="noindent" >In Bitcoin, a miner collects a number of unconfirmed transactions and concatenates
+them using a Merkle tree. All nodes of this tree except the leaves are 32 byte
+hashes computed from its children. The root of this tree, denoted <span 
+class="cmmi-10">t </span>here,
+is stored in another structure called the <span 
+class="cmti-10">block header</span>, which also includes
+the hash of the previous block&#8217;s header <span 
+class="cmmi-10">h </span>and a random string <span 
+class="cmmi-10">n </span>called the
+nonce. We use the term <span 
+class="cmmi-10">m </span>to denote the concatenation of Merkle root and the
+hash of the previous block. That is, <span 
+class="cmmi-10">m </span>= <span 
+class="cmmi-10">t</span><span 
+class="cmsy-10">&#x2225;</span><span 
+class="cmmi-10">h </span>and the header is of the form
+<span 
+class="cmmi-10">m</span><span 
+class="cmsy-10">&#x2225;</span><span 
+class="cmmi-10">n</span>.
+<!--l. 110--><p class="indent" >   The solution is also determined by another parameter <span 
+class="cmmi-10">b &#x003C; </span>2<sup><span 
+class="cmr-7">256</span></sup>, denoting the
+&#8216;difficulty&#8217;. Let <span 
+class="cmmi-10">F </span>be a hash function taking as input an arbitrary sized array of bits
+and outputting an array of 256 bits (32 bytes). The output of <span 
+class="cmmi-10">F </span>can be considered a
+number between 0 and 2<sup><span 
+class="cmr-7">256</span></sup> <span 
+class="cmsy-10">&minus; </span>1. The header <span 
+class="cmmi-10">m</span><span 
+class="cmsy-10">&#x2225;</span><span 
+class="cmmi-10">n </span>is considered a valid solution if
+<span 
+class="cmmi-10">F</span>(<span 
+class="cmmi-10">m</span><span 
+class="cmsy-10">&#x2225;</span><span 
+class="cmmi-10">n</span>) <span 
+class="cmsy-10">&le; </span><span 
+class="cmmi-10">b</span>.
+<!--l. 112--><p class="indent" >   A miner repeatedly tries different values of <span 
+class="cmmi-10">n </span>(possibly changing <span 
+class="cmmi-10">m </span>as well by
+including new transactions in between tries) until a solution is found. Since the
+output of <span 
+class="cmmi-10">F </span>can be thought of as distributed uniformly in the output space, the
+probability of finding a solution in each try is <span 
+class="cmmi-10">&tau; </span>= <span 
+class="cmmi-10">b&#x2215;</span>2<sup><span 
+class="cmr-7">256</span></sup>. All proof-of-work algorithms
+(including that of Ergo) follow this basic idea of restricting the output to be less than
+some <span 
+class="cmmi-10">b</span>. It is worth noting that, for Bitcoin, as of this writing (July 2019), <span 
+class="cmmi-10">b </span><span 
+class="cmsy-10">&asymp; </span>2<sup><span 
+class="cmr-7">181</span></sup>,
+and so <span 
+class="cmmi-10">&tau; </span><span 
+class="cmsy-10">&asymp; </span>2<sup><span 
+class="cmsy-7">&minus;</span><span 
+class="cmr-7">75</span></sup> <span 
+class="cmsy-10">&asymp; </span>10<sup><span 
+class="cmsy-7">&minus;</span><span 
+class="cmr-7">22</span><span 
+class="cmmi-7">.</span><span 
+class="cmr-7">6</span></sup> <span 
+class="cmsy-10">&asymp; </span>0<span 
+class="cmmi-10">.</span>0000000000000000000000257.
+<!--l. 114--><p class="noindent" >
+   <h3 class="sectionHead"><span class="titlemark">3   </span> <a 
+ id="x1-30003"></a>Mining Pools</h3>
+<!--l. 116--><p class="noindent" >Bitcoin and all other cryptocurrencies allow mining pools, which roughly work as
+follows. The pool distributes work, based on a some <span 
+class="cmmi-10">m </span>that it decides. Each miner
+tries to find a solution for the given <span 
+class="cmmi-10">m </span>and any solution found is sent to the network.
+A miner actually tries to find a <span 
+class="cmti-10">share</span>, which is like a solution but with reduced
+difficulty. Some of the shares may also be solutions for the actual difficulty, which
+become valid blocks. A miner gets paid by the number of shares submitted. The key
+observation with pools is that miners do work for some other entity who then
+distributes the rewards back to the workers. We define three levels of centralization in
+pools.
+<!--l. 121--><p class="indent" >
+   <ol  class="enumerate1" >
+   <li 
+  class="enumerate" id="x1-3002x1"><span 
+class="cmti-10">Level 1 (No decentralization): </span>The  pool  operator  is  defines  both  <span 
+class="cmmi-10">m </span>and
+   the  reward  address.  Thus,  a  pool  operator  has  full  control  over  which
+                                                                  
+
+                                                                  
+   transactions are included (censorship) and also carries the risk of losing the
+   rewards.
+   </li>
+   <li 
+  class="enumerate" id="x1-3004x2"><span 
+class="cmti-10">Level 2 (Censorship resistant): </span>The pool operator does not defines <span 
+class="cmmi-10">m </span>but
+   collects the rewards. This is resistant to sensorship but still carries the risk
+   of losing the rewards. This is what we will try achive for Ergo.
+   </li>
+   <li 
+  class="enumerate" id="x1-3006x3"><span 
+class="cmti-10">Level 3 (Complete decentralization): </span>There is no pool operator and rewards
+   are  automatically  given  to  the  participants  based  on  the  shares  they
+   submitted (example P2Pool for Bitcoin and SmartPool for Ethereum).</li></ol>
+<!--l. 127--><p class="noindent" >
+   <h3 class="sectionHead"><span class="titlemark">4   </span> <a 
+ id="x1-40004"></a>Ergo PoW</h3>
+<!--l. 129--><p class="noindent" >Ergo is derived from Bitcoin but has some major differences. The prime difference is
+that while in Bitcoin, the reward UTXO may be spendable by someone other than the
+miner finding a block, in Ergo, the reward box is spendable only by that
+miner. In other words, any Ergo node that finds a block also has the ability to
+spend those rewards. Furthermore, the converse is also true: anyone who
+spends the reward must necessarily have had the ability to generate that
+block. While this may not seem much of a difference from Bitcoin because the
+miner usually sends the reward to their own address, consider situations such
+as P2Pool&#x00A0;<span class="cite">[<span 
+class="cmbx-10">?</span>]</span>, where the reward is sent to all the &#8220;share-holders&#8221; of that
+block.
+<!--l. 131--><p class="indent" >   If we try to create a system like P2Pool or even a centralized pool based on
+existing models, we find that anyone having the ability to find a solution is able to
+steal the rewards, thereby creating a race condition for spending the reward
+720 blocks later. This is done using a combinations of two approaches in
+Ergo:
+   <ol  class="enumerate1" >
+   <li 
+  class="enumerate" id="x1-4002x1"><span 
+class="cmbx-10">Autolykos: </span>The solution contains two additional parameters: a public key
+   <span 
+class="cmmi-10">p </span>(corresponding to some secret key <span 
+class="cmmi-10">s</span>) and a signature on the message <span 
+class="cmmi-10">m</span>
+   (this message is the same as in Bitcoin) that verifies with <span 
+class="cmmi-10">p</span>. Because of this
+   signature, secret key <span 
+class="cmmi-10">s </span>is necessary to generate the solution.
+   <!--l. 135--><p class="noindent" >The signature consists of a pair (<span 
+class="cmmi-10">d,w</span>), where <span 
+class="cmmi-10">d </span>is an integer and <span 
+class="cmmi-10">w </span>is a string.
+   The solution is valid if <span 
+class="cmmi-10">d </span>has a certain number of leading zeros. The complete
+   protocol for creating and verifying the solution is called <span 
+class="cmti-10">Autolykos</span>&#x00A0;<span class="cite">[<a 
+href="#Xautolykos">2</a>]</span>.
+   </li>
+   <li 
+  class="enumerate" id="x1-4004x2"><span 
+class="cmbx-10">Emission contract: </span>The reward transaction must have exactly one output
+   storing the reward (initially 67.5 Ergs), which is protected using the script:
+   <span 
+class="cmti-10">prove knowledge of secret key corresponding to public key </span><span 
+class="cmmi-10">p</span>. Because of this
+   script, secret key <span 
+class="cmmi-10">s </span>is necessary to spend the reward. This is done using
+   something called an <span 
+class="cmti-10">Emission Contract</span>, discussed in Section&#x00A0;<a 
+href="#x1-50005">5<!--tex4ht:ref: emission --></a>.</li></ol>
+<!--l. 143--><p class="indent" >   In a nutshell, an Ergo block header is of the form <span 
+class="cmmi-10">m</span><span 
+class="cmsy-10">&#x2225;</span><span 
+class="cmmi-10">n</span><span 
+class="cmsy-10">&#x2225;</span><span 
+class="cmmi-10">p</span><span 
+class="cmsy-10">&#x2225;</span><span 
+class="cmmi-10">w</span><span 
+class="cmsy-10">&#x2225;</span><span 
+class="cmmi-10">d </span>such that:
+                                                                  
+
+                                                                  
+   <ol  class="enumerate1" >
+   <li 
+  class="enumerate" id="x1-4006x1"><span 
+class="cmmi-10">m,n </span>serve similar purpose as in Bitcoin and <span 
+class="cmmi-10">p </span>is a public key.
+   </li>
+   <li 
+  class="enumerate" id="x1-4008x2"><span 
+class="cmmi-10">m </span>is created such that the reward is spendable only by the owner of <span 
+class="cmmi-10">p</span>.
+   </li>
+   <li 
+  class="enumerate" id="x1-4010x3"><span 
+class="cmmi-10">w </span>is a random value needed for verifying the solution.
+   </li>
+   <li 
+  class="enumerate" id="x1-4012x4"><span 
+class="cmmi-10">d </span>is a signature on <span 
+class="cmmi-10">F</span>(<span 
+class="cmmi-10">m</span><span 
+class="cmsy-10">&#x2225;</span><span 
+class="cmmi-10">n</span><span 
+class="cmsy-10">&#x2225;</span><span 
+class="cmmi-10">p</span><span 
+class="cmsy-10">&#x2225;</span><span 
+class="cmmi-10">w</span>) that verifies with <span 
+class="cmmi-10">p</span>.
+   </li>
+   <li 
+  class="enumerate" id="x1-4014x5"><span 
+class="cmmi-10">d </span><span 
+class="cmsy-10">&le; </span><span 
+class="cmmi-10">b</span>, where <span 
+class="cmmi-10">b </span>serves similar purpose as in Bitcoin.</li></ol>
+<!--l. 152--><p class="indent" >   Observe that given a solution, verifying it is very fast&#x00A0;(see&#x00A0;<span class="cite">[<a 
+href="#Xautolykos">2</a>]</span> for benchmarks). It
+involves 1 computation of <span 
+class="cmmi-10">F </span>and one signature verification.
+<!--l. 155--><p class="indent" >   Because of the nature of the signature scheme used&#x00A0;<span class="cite">[<a 
+href="#Xautolykos">2</a>]</span>, and in particular due to
+the hash function <span 
+class="cmmi-10">F</span>, the value of <span 
+class="cmmi-10">d </span>is uniformly distributed in [0<span 
+class="cmmi-10">..</span>2<sup><span 
+class="cmr-7">256</span></sup> <span 
+class="cmsy-10">&minus; </span>1].
+The only known approach to find such a <span 
+class="cmmi-10">d </span>is to try different values of <span 
+class="cmmi-10">n</span>
+(and possibly <span 
+class="cmmi-10">w</span>), compute <span 
+class="cmmi-10">F</span>(<span 
+class="cmmi-10">m</span><span 
+class="cmsy-10">&#x2225;</span><span 
+class="cmmi-10">n</span><span 
+class="cmsy-10">&#x2225;</span><span 
+class="cmmi-10">p</span><span 
+class="cmsy-10">&#x2225;</span><span 
+class="cmmi-10">w</span>), and then check if the resulting <span 
+class="cmmi-10">d </span>is
+less than <span 
+class="cmmi-10">b</span>. Thus, as in Bitcoin, the probability of <span 
+class="cmmi-10">d </span>being in the correct
+range is <span 
+class="cmmi-10">b&#x2215;</span>2<sup><span 
+class="cmr-7">256</span></sup>, which is the probability of finding the right solution in one
+try.
+<!--l. 158--><p class="indent" >   In Autolykos, special care is taken to ensure that the hash function <span 
+class="cmmi-10">F </span>is <span 
+class="cmti-10">memory</span>
+<span 
+class="cmti-10">hard</span>, i.e., it requires either too much time or too much memory. It is done by
+constructing the hash function <span 
+class="cmmi-10">F </span>in a specific way to make Autolykos ASIC
+resistant&#x00A0;<span class="cite">[<a 
+href="#Xautolykos">2</a>]</span>.
+   <h3 class="sectionHead"><span class="titlemark">5   </span> <a 
+ id="x1-50005"></a>Emission Box</h3>
+<!--l. 163--><p class="noindent" >One of the goals of Ergo was to have a <span 
+class="cmti-10">pool resistant </span>protocol, which informally means
+that pool formation in economically unviable. However, Autolykos alone is not
+sufficient to obtain <span 
+class="cmti-10">pool-resistance</span>. In addition, Ergo uses an <span 
+class="cmti-10">emission contract</span>
+encapsulated in an <span 
+class="cmti-10">emission box </span>which has all the (finite amount of) rewards locked
+in. Each miner must spend this box to collect rewards. The contract inside this box
+has the following conditions:
+<!--l. 166--><p class="indent" >
+   <ol  class="enumerate1" >
+   <li 
+  class="enumerate" id="x1-5002x1">The first output of the reward transaction must be another emission box
+   with the same script as this and with the remaining ergs after deducting the
+   appropriate reward amount. The reward amount is specified by a formula
+   encoded in ErgoScript. After several years when the emission box becomes
+   empty, it will be automatically destoyed.
+   </li>
+   <li 
+  class="enumerate" id="x1-5004x2">The second output of the reward transaction must contain the entire reward
+   and be protected by the script <span 
+class="cmti-10">prove knowledge of secret key corresponding</span>
+   <span 
+class="cmti-10">to public key </span><span 
+class="cmmi-10">p</span>, where <span 
+class="cmmi-10">p </span>is the public key in the Autolykos solution.</li></ol>
+                                                                  
+
+                                                                  
+<!--l. 172--><p class="indent" >   Thus, any miner wishing to collect rewards from emission must store them in
+another box protected using the public key <span 
+class="cmmi-10">p</span>, whose secret key is needed to generate
+the current solution. What this means is that anyone who has the ability to generate
+a solution also has the ability to collect rewards. Consequently, when the reward
+becomes permanent (720 blocks later), there will be a race between anyone knowing
+the secret key to grab the rewards. Contrast this with Bitcoin, where the reward may
+be sent to any address.
+<!--l. 174--><p class="indent" >   The key factor that allows pooling in the Bitcoin and other blockchains is the
+ability to send rewards to an address independent of the block solution (to a pool
+address or to all the participants). In Ergo, however, this requires that any operator
+running a pool and wanting the participants to pay the reward to some given address
+<span 
+class="cmmi-10">p </span>must also share the corresponding secret key <span 
+class="cmmi-10">s</span>, thereby giving the participants also
+the ability to spend the rewards. We note that there are other approaches to create a
+pool in Ergo that do not require paying to the pools address as discussed
+below.
+<!--l. 179--><p class="noindent" >
+   <h3 class="sectionHead"><span class="titlemark">6   </span> <a 
+ id="x1-60006"></a>Creating an Autolykos Mining Pool</h3>
+<!--l. 181--><p class="noindent" >We describe a simple approach to create a mining pool in Ergo. The key observation
+is that in a valid share, the reward need not necessarily be sent directly to the pool&#8217;s
+address. What is actually necessary is that an amount equivalent to the reward is sent
+to the pool&#8217;s address. This simple observation allows us to create a pool with the
+following rules.
+   <ol  class="enumerate1" >
+   <li 
+  class="enumerate" id="x1-6002x1">Each miner can send the reward to his own public key <span 
+class="cmmi-10">p</span>, whose secret key
+   only he knows.
+   </li>
+   <li 
+  class="enumerate" id="x1-6004x2">The block must also have another transaction sending the same amount as
+   the reward to the pool address.</li></ol>
+<!--l. 187--><p class="indent" >   A valid share is a solution to a block with the above structure. A pool operator
+collects such shares and any funds thus received are distributed among the miners
+based on the number of shares they submitted.
+<!--l. 189--><p class="indent" >   One drawback of the above method is that each miner must have an equivalent
+amount of ergs to cover the reward amount at any time, even though the reward
+become spendable only after 720 blocks. To overcome this, a pool may provide
+incentives such as allowing the miner to keep a small fraction of the reward (example
+for the current reward of 67.5 ergs, the pool may require only 65 ergs to be sent to
+it).
+<!--l. 1--><p class="noindent" >
+   <h3 class="likesectionHead"><a 
+ id="x1-70006"></a>References</h3>
+<!--l. 1--><p class="noindent" >
+                                                                  
+
+                                                                  
+  <div class="thebibliography">
+  <p class="bibitem" ><span class="biblabel">
+<span 
+class="cmr-9">1.</span> <span class="bibsp"><span 
+class="cmr-9">&#x00A0;</span><span 
+class="cmr-9">&#x00A0;</span><span 
+class="cmr-9">&#x00A0;</span></span></span><a 
+ id="Xkiayias2017non"></a><span 
+class="cmr-9">Aggelos Kiayias, Andrew Miller, and Dionysis Zindros.  Non-interactive proofs</span>
+  <span 
+class="cmr-9">of proof-of-work.</span>
+  </p>
+  <p class="bibitem" ><span class="biblabel">
+<span 
+class="cmr-9">2.</span> <span class="bibsp"><span 
+class="cmr-9">&#x00A0;</span><span 
+class="cmr-9">&#x00A0;</span><span 
+class="cmr-9">&#x00A0;</span></span></span><a 
+ id="Xautolykos"></a><span 
+class="cmr-9">Autolykos:           The           ergo           platform           pow           puzzle.</span>
+  <a 
+href="https://docs.ergoplatform.com/ErgoPow.pdf" class="url" ><span 
+class="cmtt-9">https://docs.ergoplatform.com/ErgoPow.pdf</span></a><span 
+class="cmr-9">, 03 2019.</span>
+</p>
+  </div>
+    
+</body></html> 
+
+                                                                  
+
+                                                                  
+                                                                  
+
+
