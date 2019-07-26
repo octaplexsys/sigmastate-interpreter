@@ -188,7 +188,7 @@ A valid share is a solution to a block with the above structure. A pool operator
 
 One drawback of the above method is that each miner must have an equivalent amount of ergs to cover the reward amount at any time, even though the reward become spendable only after 720 blocks. To overcome this, a pool may provide incentives such as allowing the miner to keep a small fraction of the reward (example for the current reward of 67.5 ergs, the pool may require only 65 ergs to be sent to it). A pool transaction can pay to any pool defined address. For instance, it could be a P2SH address of \texttt{poolPubKey}. 
 
-\textbf{Securing the pool transaction:} Let Alice be a miner with public key $alice$. If such a system is used in, say Bitcoin, then the system becomes insecure. Once the pool-paying transaction is publicized, anyone (not necessarily Alice) may use it for their mining pool. 
+\textbf{Securing the pool transaction:} Let Alice be a miner with public key $alice$. If such a system is used in, say Bitcoin, then the system becomes insecure. Once the pool-paying transaction is publicized, anyone (not necessarily Alice) may use it as their pool transaction. 
 However, \langname allows us to use the block solution in the context, which we can use to solve the problem as follows. Instead of paying to the pool from an arbitrary box (or boxes), Alice will instead store these funds in a special box protected by the following script:
 \begin{verbatim}
 minerPubKey == alice || proveDlog(bob)
@@ -314,7 +314,7 @@ To get to such a solution, a miner must perform the following computation repeat
 
 \textbf{Distrbution of $d$:} The hash function $H$ is constructed using another hash function $H':\{0,1\}^*\mapsto\{0,1\}^{256}$ and then computing $H(x)= H'(x) \bmod{q}$. If $H'$ behaves like a random oracle, then so does $H$ and the value of $d$ is uniformly distributed in $\mathbb{Z}_q$. 
 
-For our implementation (Secp256k1), $q = 2^{256} - 2^{32} - 2^{9} - 2^8 - 2^7 - 2^6 - 2^4 - 1$. Thus, the probability of a random 256-bit integer not falling in $\mathbb{Z}_q$ is less than $\approx 2^{-223.9999}\approx 10^{-67}$. Thus, for all practical purposes, $d$ can be thought of as being uniformly distributed in ${0, 1}^{256}$.
+For our implementation (Secp256k1), $q = 2^{256} - 2^{32} - 2^{9} - 2^8 - 2^7 - 2^6 - 2^4 - 1$. Thus, the probability of a random 256-bit integer not falling in $\mathbb{Z}_q$ is less than $\approx 2^{-223.9999}\approx 10^{-67}$. Thus, for all practical purposes, $d$ can be thought of as being uniformly distributed in $\{0, 1\}^{256}$.
 
 \textbf{Optimization 1 (Precomputing $H$ for each block):} 
 Assume that the miner must perform the above operations $\alpha$ times before getting to a solution. This results in a total of $\alpha k$ invocations of $H$. 
