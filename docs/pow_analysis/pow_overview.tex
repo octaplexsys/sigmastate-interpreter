@@ -97,7 +97,7 @@
 
 \section{Introduction}
 
-Ergo\footnote{\url{https://ergoplatform.org}} is a smart contract platform running on its own blockchain. It provides a high-level language called \langname used for writing contracts featuring Ethereum-like functionality but more closer to Bitcoin in the underlying design. For instance, it is based on short-lived objects (called UTXOs in Bitcoin and {\em boxes} in Ergo) instead of long-lived accounts to store data and code. It also has some features different from both Bitcoin and Ethereum relating to scalability and long-term survivability. For instance, it has a {\em storage-rent} component, so that boxes must pay rent to continue staying on the blockchain. Secondly, it allows running a fully verifying node on low-power devices using an idea called {\em Non-interactive Proofs-of-proofs of Work}~\cite{kiayias2017non}. Finally, it uses a PoW algorithm called \powname~\cite{autolykos} that discourages mining-pool formation, which we informally term {\em pool-resistance}. This article gives an overview of \powname. 
+Ergo\footnote{\url{https://ergoplatform.org}} is a smart contract platform running on its own blockchain. It provides a high-level language called \langname used for writing contracts featuring Ethereum-like functionality but more closer to Bitcoin in the underlying design. For instance, it is based on short-lived objects (called UTXOs in Bitcoin and {\em boxes} in Ergo) instead of long-lived accounts to store data and code. It also has some features different from both Bitcoin and Ethereum relating to scalability and long-term survivability. For instance, it has a {\em storage-rent} component, so that boxes must pay rent to continue staying on the blockchain. Secondly, it allows running a fully verifying node on low-power devices using the idea of partially stateless clients implementation~\cite{RMCI17,ourPaperFull}. Finally, it uses a PoW algorithm called \powname~\cite{autolykos} that discourages mining-pool formation, which we informally term {\em pool-resistance}. This article gives an overview of \powname. 
 
 We assume that the reader is familiar with the basic structure of Bitcoin transactions and knows the terms such as UTXOs, inputs and outputs. Additionally, the reader is assumed to have some knowledge of how Bitcoin outputs are protected (locked) by scripts and how the spender unlocks them. 
 Before getting into \powname, it is useful to understand the design of Bitcoin's PoW. 
@@ -120,7 +120,7 @@ We define three levels of centralization in pools.
 
 \begin{enumerate}
 	\item {\em Level 1 (No decentralization):} The pool operator is defines both $m$ and the reward address. Thus, a pool operator has full control over which transactions are included (censorship) and also carries the risk of losing the rewards.
-	\item {\em Level 2 (Censorship resistant):} The pool operator does not defines $m$ but collects the rewards. This is resistant to sensorship but still carries the risk of losing the rewards. This is what we will try achive for Ergo. 
+	\item {\em Level 2 (Censorship resistant):} The pool operator does not defines $m$ but collects the rewards. This is resistant to censorship but still carries the risk of losing the rewards. This is what we will try achieve for Ergo. 
 	\item {\em Level 3 (Complete decentralization):} There is no pool operator and rewards are automatically given to the participants based on the shares they submitted (example P2Pool for Bitcoin and SmartPool for Ethereum).
 \end{enumerate}
 
@@ -132,12 +132,12 @@ If we try to create a system like P2Pool or even a centralized pool based on exi
 \begin{enumerate}
 	\item \textbf{\powname:} The solution contains two additional parameters: a public key $p$ (corresponding to some secret key $s$) and a signature on the message $m$ (this message is the same as in Bitcoin) that verifies with $p$. Because of this signature, secret key $s$ is necessary to generate the solution. 
 
-	The signature consists of a pair $(d, w)$, where $d$ is an integer and $w$ is a string.
-%	 (see Apendix~\ref{schnorr}). I
+	The signature consists of a pair $(d, w)$, where $d$ is an integer and $w$ is a string (see Appendix~\ref{schnorr} for details of the signature scheme). 
 %	rrespective of how $w$ is selected, the value $d$ is 
+
 	The solution is valid if $d$ has a certain number of leading zeros. 
-	The complete protocol for creating and verifying the solution is called {\em \powname}~\cite{autolykos}.
-	\item \textbf{Emission contract:} The reward transaction must have exactly one output storing the reward (initially 67.5 Ergs), which is protected using the script: {\em prove knowledge of secret key corresponding to public key $p$}. Because of this script, secret key $s$ is necessary to spend the reward. This is done using something called an {\em Emission Contract}, discussed in Section~\ref{emission}.
+	The protocol is called {\em \powname}~\cite{autolykos} and is described in Appendix~\ref{pow}.
+	\item \textbf{Emission contract:} The reward transaction must have exactly one identical output emission box containing the remaining ergs to be emitted and exactly one output reward box for storing the reward (initially 67.5 Ergs). A reward box must be protected using the script: {\em prove knowledge of secret key corresponding to public key $p$ AND height is greater than equal to $\langle$the current height plus 720$\rangle$}. Because of this script, secret key $s$ is necessary to spend the reward. This is done using something called an {\em Emission Contract}, discussed in Section~\ref{emission}.
 \end{enumerate} 
 
 In a nutshell, an Ergo block header is of the form $m\|n\|p\|w\|d$ such that:
@@ -149,10 +149,10 @@ In a nutshell, an Ergo block header is of the form $m\|n\|p\|w\|d$ such that:
 	\item $d\leq b$, where $b$ serves similar purpose as in Bitcoin. 
 \end{enumerate}
 
-Observe that given a solution, verifying it is very fast~(see~\cite{autolykos} for benchmarks). It involves 1 computation of $F$ and one signature verification. 
+Observe that given a solution, verifying it is very fast. It involves 1 computation of $F$ and one signature verification (see Appendix~\ref{verify} for benchmarks).
 
 %Before going on to discuss the features of the above scheme, we first describe how to find a solution. 
-Because of the nature of the signature scheme used~\cite{autolykos}, and in particular due to the hash function $F$, the value of $d$ is uniformly distributed in $[0..2^{256}-1]$. The only known approach to find such a $d$ is to try different values of $n$ (and possibly $w$), compute $F(m\|n\|p\|w)$, and then check if the resulting $d$ is less than $b$.
+Because of the nature of the signature scheme used~\cite{autolykos}, and in particular due to the hash function $F$, the value of $d$ is almost uniformly distributed in $[0..2^{256}-1]$ (see Appendix~\ref{generating}). The only known approach to find such a $d$ is to try different values of $n$ (and possibly $w$), compute $F(m\|n\|p\|w)$, and then check if the resulting $d$ is less than $b$.
 Thus, as in Bitcoin, the probability of $d$ being in the correct range is $b/2^{256}$, which is the probability of finding the right solution in one try.
   
 In \powname, special care is taken to ensure that the hash function $F$ is {\em memory hard}, i.e., it requires either too much time or too much memory. It is done by constructing the hash function $F$ in a specific way to make \powname ASIC resistant~\cite{autolykos}. 
@@ -178,18 +178,178 @@ We note that there are other approaches to create a pool in Ergo that do not req
 
 \section{Creating an \powname Mining Pool}
 
-We describe a simple approach to create a mining pool in Ergo. The key observation is that in a valid share, the reward need not necessarily be sent directly to the pool's address. What is actually necessary is that an amount equivalent to the reward is sent to the pool's address. This simple observation allows us to create a pool with the following rules.
+We describe a simple approach to create a mining pool in Ergo. The key observation is that in a valid share, the reward need not necessarily be sent directly to the pool's address. What is actually necessary is that an amount equivalent to the reward is sent to the pool's address. This simple observation allows us to create a pool with the following rules:
 \begin{enumerate}
-	\item Each miner can send the reward to his own public key $p$, whose secret key only he knows.
-	\item The block must also have another transaction sending the same amount as the reward to the pool address.
+	\item Each miner can send the reward to his own public key $p$, whose secret key only he knows ({\em reward transaction}).
+	\item The block must also have another transaction sending the same amount as the reward to the pool address ({\em pool transaction}).
 \end{enumerate}
 
 A valid share is a solution to a block with the above structure. A pool operator collects such shares and any funds thus received are distributed among the miners based on the number of shares they submitted.
 
-One drawback of the above method is that each miner must have an equivalent amount of ergs to cover the reward amount at any time, even though the reward become spendable only after 720 blocks. To overcome this, a pool may provide incentives such as allowing the miner to keep a small fraction of the reward (example for the current reward of 67.5 ergs, the pool may require only 65 ergs to be sent to it).
+One drawback of the above method is that each miner must have an equivalent amount of ergs to cover the reward amount at any time, even though the reward become spendable only after 720 blocks. To overcome this, a pool may provide incentives such as allowing the miner to keep a small fraction of the reward (example for the current reward of 67.5 ergs, the pool may require only 65 ergs to be sent to it). A pool transaction can pay to any pool defined address. For instance, it could be a P2SH address of \texttt{poolPubKey}. 
 
+\textbf{Securing the pool transaction:} Let Alice be a miner with public key $alice$. If such a system is used in, say Bitcoin, then the system becomes insecure. Once the pool-paying transaction is publicized, anyone (not necessarily Alice) may use it for their mining pool. 
+However, \langname allows us to use the block solution in the context, which we can use to solve the problem as follows. Instead of paying to the pool from an arbitrary box (or boxes), Alice will instead store these funds in a special box protected by the following script:
+\begin{verbatim}
+minerPubKey == alice || proveDlog(bob)
+\end{verbatim}
+The first part ensures that when used to fund the pool output, the miner must be Alice. The second ensures that the coins are not stuck till Alice finds a block (if ever). Here \texttt{bob} is a public key owned by Alice or someone loaning the funds.
+ 
 \bibliographystyle{unsrt}
 \bibliography{main}
+\appendix
+\section*{Appendix}
+\section{Schnorr Identification}
+\label{schnorr}
+\powname is based on Schnorr identification~\cite{schnorr}, which we describe here. Let $G$ be a cyclic group of prime order $q$ such that computing discrete logarithms in $G$ is hard and let $g$ be a public generator of $G$. 
+
+%\subsection{Basic Sigma Protocol}
+The following 3-step protocol is used to prove knowledge of some secret $x\in\mathbb{Z}_q$ corresponding to public $w = g^x\in G$. 
+
+\begin{enumerate}
+	\item (Commitment) Prover selects random ${s}\in\mathbb{Z}_q$ and sends ${p} = g^{s}$ to verifier.
+	\item (Challenge) The verifier selects random $r\in \mathbb{Z}_q$ and sends it to prover. 
+	\item (Response) The prover computes $d = xr-{s} \bmod{q}$ and sends $d$ to verifier
+	
+	The verifier accepts if ${p}g^d = w^r$. 
+	
+\end{enumerate}
+
+The above is a proof of knowledge because we can construct an extractor for $x$ if we can reset the prover and obtain the same commitment $w$ (and thus, $s$) twice. Then $d_1=x_1 - s$ and $d_2=xr_2-s$ with $r_1 \neq r_2$ will reveal $(x, s)$.
+
+\textbf{Schnorr Signatures:}
+Schnorr identification can be converted into a signature scheme keeping $w$ as the public key and $x$ as the private key. The idea is to make the the above protocol non-interactive by applying the Fiat-Shamir transform~\cite{fiatshamir}, where the role of the verifier is replaced by a collision resistant hash function 
+%$F:\{0,1\}^*\mapsto \mathbb{Z}_q$ and the challenge is computed as $r = F({p}\|m\| w)$ for message $m$ to be signed. 
+$F:\{0,1\}^*\times G\times G\mapsto \mathbb{Z}_q$ and the challenge is computed as $r = F(m,w,{p})$ for message $m$ to be signed. Then $(p, d)$ is a signature on the (public-key, message) pair $(w, m)$. 
+In the above signature scheme, it is important that $p$ (and thus, $x$) be never reused for two different messages due to the extractor described above. 
+%two different messages $m_1, m_2$ and the same $w$, then the signatures
+
+Since a signature is non-interactive, we can swap the roles of the public key and the commitment, so that $(w, d)$ can be regarded as a signature for the (public-key, message) pair $(p, m)$, with the requirement that $w$ should never be reused for two different messages. This is what \powname uses; ${s}$ is the miner's secret key and ${p} = g^{s}$ is the corresponding public key. 
+
+%The signature $(d, m, w, p)$, can be thought of as a commitment to secret $s$ using randomness $x$.
+
+
+%\powname is based on Schnorr signatures with the difference that the roles of the public key and the commitments are reversed, so that ${s}$ is the miner's private key and ${p} = g^{s}$ is the corresponding public key. 
+%These parameters have been represented in bold for easy readability.
+\section{\powname}
+\label{pow}
+
+The following is essentially reproduced from~\cite{autolykos} with the only change that the {\em genIndices} method of~\cite{autolykos} is renamed to $I$ for brevity.
+
+\powname~\cite{autolykos} is defined using public parameters $(k, N, H, I, b, M)$ where:
+
+\begin{enumerate}
+	\item Integer $k$ represents the number of solutions.
+	\item Integer $N$ represents the number of elements of $\mathbb{Z}_q$ to be stored in memory.
+	\item Hash function $H:\{0,1\}^* \mapsto \mathbb{Z}_q$. 
+	\item Hash function $I:\{0,1\}^* \mapsto {\mathbb{Z}^k_N}$ generates $k$ indices, each within $[0..N-1]$.
+	\item A difficulty parameter $b$ calculated via difficulty adjustment.
+	\item A constant message $M\in\{0, 1\}^\ell$ used to enlarge input and increase time.
+\end{enumerate}
+
+The parameters $G, g$ are the same as in the Secp256k1 standard of Bitcoin. The remaining parameters are: 
+$k = 32$ and $N = 2^{26}$. The hash functions $H, I$ are derived from Blake2b256~\cite{rfc7693} and explained in~\cite{autolykos}. The message $M$ is computed in Scala as \texttt{0 to 1023 flatMap (toByteArray)}, where \texttt{toByteArray} converts a \texttt{Long} type to an array of 8 bytes (i.e., 64 bits). Thus, $\ell = 65536$.
+
+\subsection{Defining a Solution}
+
+A solution is a tuple $(m, n, d, w, p) \in \mathbb{Z}_{2^{256}} \times \mathbb{Z}_{2^{64}}\times \mathbb{Z}_{q}\times G \times G$ s.t: 
+\begin{enumerate}
+	\item $d \leq b$, where $b$ is the difficulty parameter discussed above.
+	\item The following algorithm yields true (signature verification):
+	\begin{enumerate}
+		\item Compute $(a_1, a_2, \ldots a_k) = I(m\|n)$.
+		\item Compute $r = \sum^{k}_{j=1}H(a_j\|M\|{p}\|m\|w)$.
+		\item Return true if and only if the following holds: 
+		\begin{equation}
+		\label{verif}
+		{p}g^d = w^r
+		\end{equation} 		
+	\end{enumerate}
+\end{enumerate}
+
+In addition to $m$, which is the payload, the solution consists of two public keys from $G$ (of 32 bytes each), the signature $d$ of 32 bytes (which contains several leading zeros) and a nonce of 8 bytes, giving a total of at most 104 bytes. 
+
+\subsection{Verification Time}
+\label{verify}
+
+The verification of a solution essentially follows the same algorithm used to define the solution. In particular, it requires the following computation:
+\begin{itemize}
+	\item 1 application of $I$.
+	\item $k$ applications of $H$.
+	\item Two exponentiations and 1 multiplication in $G$.
+\end{itemize}
+In our tests this took less than 2 ms on an Intel Core i5-7200U, 2.5GHz processor.
+
+\subsection{Proving (or Finding a Solution)}
+\label{generating}
+
+Here we discuss how to find a solution.  
+Let ${s}$ be the miner's private key and ${p} = g^{s}$ be the corresponding public key used in the solution $(m, n, d, w, p)$ for a block whose header hashes to $m$. To generate the remaining parameters $n, d, w$, the miner performs the following procedure. The process essentially involves first fixing a random $w$ and then repeatedly trying different values of $n$ to compute $d$ (until the correct $d$ is found). If the difficulty becomes so high that all $2^{64}$ values of $n$ are insufficient to get a solution then $w$ can also be varied.
+
+\subsubsection{Generating a Solution}
+
+The miner generates a random secret $x\in \mathbb{Z}_q$ and sets $w = g^x\in G$ and proceeds with the non-interactive Schnorr identification protocol with the roles of commitments and public keys reversed. 
+The part that makes \powname memory-hard is the way $F$ is implemented. 
+
+The goal is to find a nonce $n\in \{0,1\}^*$ and a solution $d$ that results in $-b \leq d\leq b$, obtained using the following algorithm:
+
+\begin{enumerate}
+	\item Generate random $n\in \{0,1\}^*$.
+	\item Compute $(a_1, a_2, \ldots a_k) = I(m\|n)$,  
+	a list of $k$ elements from $\mathbb{Z}_N$.
+	\item Compute $r = \sum^{k}_{j=1} H(a_j\|M\|{p}\|m\|w)$, where the addition is in $\mathbb{Z}_q$.
+	\item Compute $d = xr- {s}$, where the multiplication is in $\mathbb{Z}_q$ and addition in $\mathbb{Z}$.
+	\item If $-b \leq d \leq b$ then return $(d, n)$ else go to Step 1.
+\end{enumerate}
+
+The complete solution is given by $(m, {p}, w, n, d)$. 
+
+To get to such a solution, a miner must perform the following computation repeatedly (Steps 2-5):
+\begin{itemize}
+	\item One invocation of $I$ (Step 2).
+	\item $k$ invocations of $H$ (Step 3).
+	\item One addition and multiplication in $\mathbb{Z}_q$ (Step 4).
+	
+\end{itemize}
+
+\textbf{Distrbution of $d$:} The hash function $H$ is constructed using another hash function $H':\{0,1\}^*\mapsto\{0,1\}^{256}$ and then computing $H(x)= H'(x) \bmod{q}$. If $H'$ behaves like a random oracle, then so does $H$ and the value of $d$ is uniformly distributed in $\mathbb{Z}_q$. 
+
+For our implementation (Secp256k1), $q = 2^{256} - 2^{32} - 2^{9} - 2^8 - 2^7 - 2^6 - 2^4 - 1$. Thus, the probability of a random 256-bit integer not falling in $\mathbb{Z}_q$ is less than $\approx 2^{-223.9999}\approx 10^{-67}$. Thus, for all practical purposes, $d$ can be thought of as being uniformly distributed in ${0, 1}^{256}$.
+
+\textbf{Optimization 1 (Precomputing $H$ for each block):} 
+Assume that the miner must perform the above operations $\alpha$ times before getting to a solution. This results in a total of $\alpha k$ invocations of $H$. 
+We know that each $a_j$ above is from $\mathbb{Z}_N$. Thus, there can only be $N$ different values of $H$ in Step 3. 
+
+If $\alpha k \gg N$, then it makes sense to precompute $H$ once for all possible values of $a_j$ and store that list $R$ in memory for further use (instead of computing $H$ on the fly for different values of $n$). That is, we store $(r_0, r_1, \ldots r_{N-1})$, where $r_i = H(i\|M\|{p}\|m\|w)$ for $i\in \mathbb{Z}_N$. Step 3 can then be rewritten as $r = \sum^{k}_{j=1}r_{a_j}$. This is more efficient assuming that memory lookup is much faster than hash computation and that the number of hashes to be computed is much larger than $N$. 
+This turns out to be true in our implementation.
+Since each $r_i$ occupies 32 bytes, the space needed for keeping the entire list $R = (r_1, r_2\ldots r_N)$ in memory is $32N$ bytes or 2Gb. 
+%Although finding any solution is time consuming, verifying it is fast. %, as discussed next.
+
+Without this optimization, a miner must compute the elements $r_{a_j}$ on the fly. However, in doing so, the number of calls to $H$ will significantly increase. As an example, if the GPU can perform $h = 2^{30}$ hashes a second~\cite{ref} and the block interval $t$ is 120 seconds, then every element in $R$ will be hashed approximately $hkt/N = 3\times 10^4$ times on average, which will reduce efficiency and profit.
+
+\textbf{Optimization 2 (Precomputing one-time prehashes):} Since the list $R$ is quite large, filling it consumes a lot of time. Our initial tests~\cite{impl} needed 25 seconds on Nvidia GTX-1070.
+This must be done for each block. However, because of the way stream ciphers work, we could store a list of unfinalized hashes 
+$H(i\|M\|{p}\|\ldots)$ for $i\in \mathbb{Z}_N$ (this consumes approximately 5Gb additional memory).
+In this case, the work to compute the unfinalized hashes would be done only once during miner initialization and computing $R$ for each block would consume only a few milliseconds to finalize the hashes (about 50 ms in our tests with GTX-1070).
+
+
+\subsection{Discussion}
+\label{impl}
+%\textbf{Discussion:} 
+The above solution is equivalent to the original Schnorr signature of Section~\ref{schnorr} with a change of variable names. 
+Note that the sizes of nonce $n$ and message $m$ is fixed, so $I(m\|n)$ is equivalent to another hash function ${I}'(m, n)$.
+Let ${m'} = (m, n)$. The signature is computed on ${m'}$ with 
+$r = F({m'},w,{p}) = \sum^{k}_{j=1}H(a_j\|M\|{p}\|m\|w)$, where $a_j$ is the $j^{\tiny\mbox{th}}$ element of ${I'}(m,n)$.
+
+Using Equation~\ref{verif} and replacing ${m'}$ by $m, n$, we can rewrite this as 
+\begin{equation}\label{eqn2}
+r = F(m, n,w,w^rg^{-d})
+\end{equation}
+Solving the puzzle requires trying different nonces $n$ and group elements $w$ till we get a signature satisfying $-b\leq d \leq b$. 
+Security follows if we assume that Schnorr signatures are unforgeable. Outsourcing the puzzle is equivalent to outsourcing the signature creating algorithm. The only difference from conventional Schnorr signature scheme of Section~\ref{schnorr} is in the design of function $F$. In particular, it is constructed in a way that efficient massive evaluation with different nonces requires allocating a large amount of memory, while a single evaluation on the verifier's side can be done on the fly.
+
+\subsubsection{Security} 
+The same $w$ (and thus, $x$) should never be reused, otherwise this will leak the secret ${s}$ as follows. Let $d = xr-{s}$ and $d' = xr'-{s}$ be two solutions. Then $x = (d-d')/(r-r')$, using which we can compute $s$. One way to ensure that $x$ is never reused for two different messages is to keep $x = f(s, m)$, where $f$ is a collision resistant hash function.
 
 
 \end{document}
