@@ -107,13 +107,13 @@ Before getting into \powname, it is useful to understand the design of Bitcoin's
 In Bitcoin, a miner collects a number of unconfirmed transactions and concatenates them using a Merkle tree. All nodes of this tree except the leaves are 32 byte hashes computed from its children. The root of this tree, denoted $t$ here, is stored in another structure called the {\em block header}, which also includes the hash of the previous block's header $h$ and a random string $n$ called the nonce. We use the term $m$ to denote the concatenation of Merkle root and the hash of the previous block. 
 That is, $m = t\|h$ and the header is of the form $m\|n$. 
 
-The solution is also determined by another parameter $b < 2^{256}$, denoting the `difficulty'. Let $F$ be a hash function taking as input an arbitrary sized array of bits and outputting an array of 256 bits (32 bytes). The output of $F$ can be considered a number between 0 and $2^{256}-1$. The header $m\|n$ is considered a valid solution if $F(m\|n) \leq b$. 
+The solution is also determined by another parameter $b < 2^{256}$, denoting the `difficulty'. Let $H$ be a collision resistant hash function taking as input an arbitrary sized array of bits and outputting an array of 256 bits. The output of $H$ can be considered a number between 0 and $2^{256}-1$. The header $m\|n$ is considered a valid solution if $H(m\|n) \leq b$. 
 
-A miner repeatedly tries different values of $n$ (possibly changing $m$ as well by including new transactions in between tries) until a solution is found. Since the output of $F$ can be thought of as distributed uniformly in the output space, the probability of finding a solution in each try is $\tau = b/2^{256}$. All proof-of-work algorithms (including that of Ergo) follow this basic idea of restricting the output to be less than some $b$. It is worth noting that, for Bitcoin, as of this writing (July 2019), $b\approx 2^{181}$, and so $\tau \approx 2^{-75}\approx 10^{-22.6}\approx 0.0000000000000000000000257$.
+A miner repeatedly tries different values of $n$ (possibly changing $m$ as well by including new transactions in between tries) until a solution is found. Since the output of $Hash$ can be thought of as distributed uniformly in the output space, the probability of finding a solution in each try is $\tau = b/2^{256}$. All proof-of-work algorithms (including that of Ergo) follow this basic idea of restricting the output to be less than some $b$. It is worth noting that, for Bitcoin, as of this writing (July 2019), $b\approx 2^{181}$, and so $\tau \approx 2^{-75}\approx 10^{-22.6}\approx 0.0000000000000000000000257$.
 
 \section{Mining Pools}
 
-Bitcoin and all other cryptocurrencies allow mining pools, which roughly work as follows. The pool distributes work, based on a some $m$ that it decides. Each miner tries to find a solution for the given $m$ and any solution found is sent to the network. 
+Bitcoin (and other cryptocurrencies) allows mining pools, which roughly work as follows. The pool distributes work, based on a some $m$ that it decides. Each miner tries to find a solution for the given $m$ and any solution found is sent to the network. 
 A miner actually tries to find a {\em share}, which is like a solution but with reduced difficulty. Some of the shares may also be solutions for the actual difficulty, which become valid blocks. A miner gets paid by the number of shares submitted.
 The key observation with pools is that miners do work for some other entity who then distributes the rewards back to the workers.
 We define three levels of centralization in pools. 
@@ -130,32 +130,34 @@ Ergo is derived from Bitcoin but has some major differences. The prime differenc
 
 If we try to create a system like P2Pool or even a centralized pool based on existing models, we find that anyone having the ability to find a solution is able to steal the rewards, thereby creating a race condition for spending the reward 720 blocks later. This is done using a combinations of two approaches in Ergo:
 \begin{enumerate}
-	\item \textbf{\powname:} The solution contains two additional parameters: a public key $p$ (corresponding to some secret key $s$) and a signature on the message $m$ (this message is the same as in Bitcoin) that verifies with $p$. Because of this signature, secret key $s$ is necessary to generate the solution. 
+	\item \textbf{\powname:} Compared to Bitcoin, the solution contains two additional parameters: a public key $p$ (corresponding to some secret key $s$) and a Schnorr signature on the message $m$ that verifies with $p$. Because of this signature, the secret key $s$ is necessary to generate the solution. Note that $m$ serves the same purpose as in Bitcoin.
 
-	The signature consists of a pair $(d, w)$, where $d$ is an integer and $w$ is a string (see Appendix~\ref{schnorr} for details of the signature scheme). 
+	A Schnorr signature consists of a pair $(d, w)$, where $d$ is an integer and $w$ is a an elliptic curve group element (see Appendix~\ref{schnorr} for details of Schnorr signature scheme). 
 %	rrespective of how $w$ is selected, the value $d$ is 
 
 	The solution is valid if $d$ has a certain number of leading zeros. 
 	The protocol is called {\em \powname}~\cite{autolykos} and is described in Appendix~\ref{pow}.
-	\item \textbf{Emission contract:} The reward transaction must have exactly one identical output emission box containing the remaining ergs to be emitted and exactly one output reward box for storing the reward (initially 67.5 Ergs). A reward box must be protected using the script: {\em prove knowledge of secret key corresponding to public key $p$ AND height is greater than equal to $\langle$the current height plus 720$\rangle$}. Because of this script, secret key $s$ is necessary to spend the reward. This is done using something called an {\em Emission Contract}, discussed in Section~\ref{emission}.
+	\item \textbf{Emission contract:} All ergs that will be ever emitted in rewards are stored in what is called an {\em emission box}, which is a box protected by a script that enforces certain conditions on how the rewards must be collected. In particular, it requires that a reward transaction has exactly two output boxes, such that the first is another emission box containing the remaining ergs and the second is a box with the miners reward (initially 67.5 Ergs) protected using the script: {\em prove knowledge of secret key corresponding to public key $p$ AND height is greater than or equal to the box-creation height plus 720}. 
+	Because of this script, secret key $s$ is necessary to spend the reward. 
+	
+	Details of the {\em emission contract}, the script protecting the emission box are given in Section~\ref{emission}.
 \end{enumerate} 
 
 In a nutshell, an Ergo block header is of the form $m\|n\|p\|w\|d$ such that:
 \begin{enumerate}
 	\item $m, n$ serve similar purpose as in Bitcoin and $p$ is a public key.
 	\item $m$ is created such that the reward is spendable only by the owner of $p$.
-	\item $w$ is a random value needed for verifying the solution. 
-	\item $d$ is a signature on $F(m\|n\|p\|w)$ that verifies with $p$. 
+	\item $(d, w)$ is a signature on $m\|n\|p\|w$ that verifies with $p$.
 	\item $d\leq b$, where $b$ serves similar purpose as in Bitcoin. 
 \end{enumerate}
 
-Observe that given a solution, verifying it is very fast. It involves 1 computation of $F$ and one signature verification (see Appendix~\ref{verify} for benchmarks).
+Observe that given a solution, verifying it is very fast because it involves one signature verification (see Appendix~\ref{verify} for benchmarks).
 
 %Before going on to discuss the features of the above scheme, we first describe how to find a solution. 
-Because of the nature of the signature scheme used~\cite{autolykos}, and in particular due to the hash function $F$, the value of $d$ is almost uniformly distributed in $[0..2^{256}-1]$ (see Appendix~\ref{generating}). The only known approach to find such a $d$ is to try different values of $n$ (and possibly $w$), compute $F(m\|n\|p\|w)$, and then check if the resulting $d$ is less than $b$.
-Thus, as in Bitcoin, the probability of $d$ being in the correct range is $b/2^{256}$, which is the probability of finding the right solution in one try.
+Because of the nature of the signature scheme used~\cite{autolykos}, the value of $d$ is almost uniformly distributed in $[0..2^{256}-1]$ (see Appendix~\ref{generating} for details). The only known approach to find such a $d$ is to try different values of $n$ (and possibly $w$), and then check if the resulting $d$ is less than $b$.
+Thus, as in Bitcoin, the probability of $d$ being in the correct range is approximately $b/2^{256}$, which is the probability of finding the right solution in one try.
   
-In \powname, special care is taken to ensure that the hash function $F$ is {\em memory hard}, i.e., it requires either too much time or too much memory. It is done by constructing the hash function $F$ in a specific way to make \powname ASIC resistant~\cite{autolykos}. 
+In \powname, special care is taken to ensure that finding the right solution is {\em memory hard}, i.e., it requires either too much time or too much memory. It is done by constructing the hash function underlying the signature scheme in a specific way. The primary purpose of this is to make \powname ASIC resistant~\cite{autolykos}. 
 \section{Emission Box}
 
 \label{emission}
@@ -166,7 +168,7 @@ However, \powname alone is not sufficient to obtain {\em pool-resistance}. In ad
 \begin{enumerate}
 	\item The first output of the reward transaction must be another emission box with the same script as this and with the remaining ergs after deducting the appropriate reward amount. The reward amount is specified by a formula encoded in \langname. 
 	After several years when the emission box becomes empty, it will be automatically destoyed.
-	\item The second output of the reward transaction must contain the entire reward and be protected by the script {\em prove knowledge of secret key corresponding to public key $p$}, where $p$ is the public key in the \powname solution.  
+	\item The second output of the reward transaction must contain the entire reward and be protected by the script {\em prove knowledge of secret key corresponding to public key $p$ and height $>$ box-creation height + 720}, where $p$ is the public key in the \powname solution.  
 \end{enumerate}
 
 Thus, any miner wishing to collect rewards from emission must store them in another box protected using the public key $p$, whose secret key is needed to generate the current solution. What this means is that anyone who has the ability to generate a solution also has the ability to collect rewards. Consequently, when the reward becomes permanent (720 blocks later), there will be a race between anyone knowing the secret key to grab the rewards. Contrast this with Bitcoin, where the reward may be sent to any address. 
@@ -195,13 +197,14 @@ minerPubKey == alice || proveDlog(bob)
 \end{verbatim}
 The first part ensures that when used to fund the pool output, the miner must be Alice. The second ensures that the coins are not stuck till Alice finds a block (if ever). Here \texttt{bob} is a public key owned by Alice or someone loaning the funds.
  
+
 \bibliographystyle{unsrt}
 \bibliography{main}
 \appendix
 \section*{Appendix}
 \section{Schnorr Identification}
 \label{schnorr}
-\powname is based on Schnorr identification~\cite{schnorr}, which we describe here. Let $G$ be a cyclic group of prime order $q$ such that computing discrete logarithms in $G$ is hard and let $g$ be a public generator of $G$. 
+\powname is based on Schnorr identification, which we describe first. Let $G$ be a cyclic group of prime order $q$ such that computing discrete logarithms in $G$ is hard and let $g$ be a public generator of $G$. 
 
 %\subsection{Basic Sigma Protocol}
 The following 3-step protocol is used to prove knowledge of some secret $x\in\mathbb{Z}_q$ corresponding to public $w = g^x\in G$. 
