@@ -132,15 +132,14 @@ If we try to create a system like P2Pool or even a centralized pool based on exi
 \begin{enumerate}
 	\item \textbf{\powname:} Compared to Bitcoin, the solution contains two additional parameters: a public key $p$ (corresponding to some secret key $s$) and a Schnorr signature on the message $m$ that verifies with $p$. Because of this signature, the secret key $s$ is necessary to generate the solution. Note that $m$ serves the same purpose as in Bitcoin.
 
-	A Schnorr signature consists of a pair $(d, w)$, where $d$ is an integer and $w$ is a an elliptic curve group element (see Appendix~\ref{schnorr} for details of Schnorr signature scheme). 
+	A Schnorr signature consists of a pair $(d, w)$, where $d$ is an integer and $w$ is (the string encoding of) an elliptic curve group element. See Appendix~\ref{schnorr} for details of Schnorr signature scheme. 
 %	rrespective of how $w$ is selected, the value $d$ is 
 
 	The solution is valid if $d$ has a certain number of leading zeros. 
 	The protocol is called {\em \powname}~\cite{autolykos} and is described in Appendix~\ref{pow}.
 	\item \textbf{Emission contract:} All ergs that will be ever emitted in rewards are stored in what is called an {\em emission box}, which is a box protected by a script that enforces certain conditions on how the rewards must be collected. In particular, it requires that a reward transaction has exactly two output boxes, such that the first is another emission box containing the remaining ergs and the second is a box with the miners reward (initially 67.5 Ergs) protected using the script: {\em prove knowledge of secret key corresponding to public key $p$ AND height is greater than or equal to the box-creation height plus 720}. 
 	Because of this script, secret key $s$ is necessary to spend the reward. 
-	
-	Details of the {\em emission contract}, the script protecting the emission box are given in Section~\ref{emission}.
+	Details of the {\em emission contract}, the script of the emission box are given in Section~\ref{emission}.
 \end{enumerate} 
 
 In a nutshell, an Ergo block header is of the form $m\|n\|p\|w\|d$ such that:
@@ -151,10 +150,10 @@ In a nutshell, an Ergo block header is of the form $m\|n\|p\|w\|d$ such that:
 	\item $d\leq b$, where $b$ serves similar purpose as in Bitcoin. 
 \end{enumerate}
 
-Observe that given a solution, verifying it is very fast because it involves one signature verification (see Appendix~\ref{verify} for benchmarks).
+A correct solution can be checked using one signature verification operation, which is designed to be fast (see Appendix~\ref{verify} for benchmarks).
 
 %Before going on to discuss the features of the above scheme, we first describe how to find a solution. 
-Because of the nature of the signature scheme used~\cite{autolykos}, the value of $d$ is almost uniformly distributed in $[0..2^{256}-1]$ (see Appendix~\ref{generating} for details). The only known approach to find such a $d$ is to try different values of $n$ (and possibly $w$), and then check if the resulting $d$ is less than $b$.
+Because of the nature of the signature scheme used, the value of $d$ is almost uniformly distributed in $[0..2^{256}-1]$ (see Appendix~\ref{generating} for details). The only known approach to find such a $d$ is to try different values of $n$ (and possibly $w$), and then check if the resulting $d$ is less than $b$.
 Thus, as in Bitcoin, the probability of $d$ being in the correct range is approximately $b/2^{256}$, which is the probability of finding the right solution in one try.
   
 In \powname, special care is taken to ensure that finding the right solution is {\em memory hard}, i.e., it requires either too much time or too much memory. It is done by constructing the hash function underlying the signature scheme in a specific way. The primary purpose of this is to make \powname ASIC resistant~\cite{autolykos}. 
