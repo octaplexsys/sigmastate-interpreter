@@ -5,7 +5,7 @@ import java.math.BigInteger
 import cats.syntax.either._
 import io.circe._
 import io.circe.syntax._
-import org.ergoplatform.ErgoBox.NonMandatoryRegisterId
+import org.ergoplatform.ErgoBox.{NonMandatoryRegisterId, TokenId}
 import org.ergoplatform.settings.Algos
 import scorex.crypto.authds.{ADDigest, ADKey}
 import scorex.crypto.hash.Digest32
@@ -78,6 +78,7 @@ trait JsonCodecs {
   implicit val minerVotesDecoder: Decoder[MinerVotes] = bytesDecoder(MinerVotes @@ _.toColl)
 
   implicit val modifierIdEncoder: Encoder[ModifierId] = _.asInstanceOf[String].asJson
+  implicit val modifierIdDecoder: Decoder[ModifierId] = ModifierId @@ _.as[String]
 
   implicit val modifierIdBytesEncoder: Encoder[ModifierIdBytes] = _.asInstanceOf[Coll[Byte]].asJson
   implicit val modifierIdBytesDecoder: Decoder[ModifierIdBytes] = bytesDecoder(ModifierIdBytes @@ _.toColl)

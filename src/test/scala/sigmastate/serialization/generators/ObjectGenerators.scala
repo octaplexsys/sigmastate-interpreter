@@ -648,10 +648,9 @@ trait ObjectGenerators extends TypeGenerators with ValidationSpecification with 
       ErgoTree.withoutSegregation))
   } yield treeBuilder(prop)
 
-  def headerGen(stateRoot: AvlTree): Gen[Header] = for {
+  def headerGen(stateRoot: AvlTree, parentId: ModifierIdBytes): Gen[Header] = for {
     id <- modifierIdBytesGen
     version <- arbByte.arbitrary
-    parentId <- modifierIdBytesGen
     adProofsRoot <- digest32CollGen
     transactionRoot <- digest32CollGen
     timestamp <- arbLong.arbitrary
@@ -666,6 +665,13 @@ trait ObjectGenerators extends TypeGenerators with ValidationSpecification with 
   } yield CHeader(id, version, parentId, adProofsRoot, stateRoot, transactionRoot, timestamp, nBits,
     height, extensionRoot, minerPk, powOnetimePk, powNonce, powDistance, votes)
 
+  def headersGen(stateRoot: AvlTree): Gen[Seq[Header]] = for {
+    size <- Gen.chooseNum(1, 10)
+  } yield (0 to size)
+    .foldLeft(List[Header](headerGen(stateRoot, modifierIdBytesGen.sample.get).sample.get)) { (h, _) =>
+      h :+ headerGen(stateRoot, h.last.id).sample.get
+    }.reverse
+
   def preHeaderGen(parentId: ModifierIdBytes): Gen[PreHeader] = for {
     version <- arbByte.arbitrary
     timestamp <- arbLong.arbitrary
@@ -675,9 +681,10 @@ trait ObjectGenerators extends TypeGenerators with ValidationSpecification with 
     votes <- minerVotesGen
   } yield CPreHeader(version, parentId, timestamp, nBits, height, minerPk, votes)
 
+
   val ergoLikeContextGen: Gen[ErgoLikeContext] = for {
     stateRoot <- avlTreeGen
-    headers <- Gen.nonEmptyListOf(headerGen(stateRoot))
+    headers <- headersGen(stateRoot)
     preHeader <- preHeaderGen(headers.head.id)
     tokens <- tokensGen
     dataBoxes <- Gen.nonEmptyListOf(ergoBoxGen)
