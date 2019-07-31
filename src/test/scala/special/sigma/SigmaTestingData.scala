@@ -61,9 +61,9 @@ trait SigmaTestingData extends SigmaTestingCommons with SigmaTypeGens {
     extensionRoot = Digest32Coll @@ Blake2b256("transactionsRoot").toColl,
     minerPk = SigmaDsl.groupGenerator,
     powOnetimePk = SigmaDsl.groupGenerator,
-    powNonce = Colls.fromArray(Array[Byte](0, 1, 2, 3, 4, 5, 6, 7)),
+    powNonce = NonceBytes @@ Colls.fromArray(Array[Byte](0, 1, 2, 3, 4, 5, 6, 7)),
     powDistance = SigmaDsl.BigInt(BigInt("1405498250268750867257727119510201256371618473728619086008183115260323").bigInteger),
-    votes = Colls.fromArray(Array[Byte](0, 1, 2))
+    votes = MinerVotes @@ Colls.fromArray(Array[Byte](0, 1, 2))
   )
   val header2: Header = CHeader(ModifierIdBytes @@ Blake2b256("Header2.id").toColl,
     0,
@@ -77,9 +77,9 @@ trait SigmaTestingData extends SigmaTestingCommons with SigmaTypeGens {
     extensionRoot = Digest32Coll @@ Blake2b256("transactionsRoot2").toColl,
     minerPk = SigmaDsl.groupGenerator,
     powOnetimePk = SigmaDsl.groupGenerator,
-    powNonce = Colls.fromArray(Array.fill(0.toByte)(8)),
+    powNonce = NonceBytes @@ Colls.fromArray(Array.fill[Byte](NonceBytes.size)(0)),
     powDistance = SigmaDsl.BigInt(BigInt("19306206489815517413186395405558417825367537880571815686937307203793939").bigInteger),
-    votes =  Colls.fromArray(Array[Byte](0, 1, 0))
+    votes = MinerVotes @@ Colls.fromArray(Array[Byte](0, 1, 0))
   )
   val headers = Colls.fromItems(header2, header1)
   val preHeader: PreHeader = CPreHeader(0,
@@ -88,7 +88,7 @@ trait SigmaTestingData extends SigmaTestingCommons with SigmaTypeGens {
     nBits = 0,
     height = 2,
     minerPk = SigmaDsl.groupGenerator,
-    votes = Colls.emptyColl[Byte]
+    votes = MinerVotes @@ Colls.emptyColl[Byte]
   )
   val ergoCtx = new ErgoLikeContext(
     lastBlockUtxoRoot = header2.stateRoot.asInstanceOf[CAvlTree].treeData,

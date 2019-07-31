@@ -461,7 +461,7 @@ trait PreHeader { // Testnet2
   /** Miner public key. Should be used to collect block rewards. */
   def minerPk: GroupElement
 
-  def votes: Coll[Byte]
+  def votes: MinerVotes
 }
 
 /** Represents data of the block header available in Sigma propositions.
@@ -508,13 +508,13 @@ trait Header {
   def powOnetimePk: GroupElement
 
   /** nonce */
-  def powNonce: Coll[Byte]
+  def powNonce: NonceBytes
 
   /** Distance between pseudo-random number, corresponding to nonce `powNonce` and a secret,
     * corresponding to `minerPk`. The lower `powDistance` is, the harder it was to find this solution. */
   def powDistance: BigInt
 
-  def votes: Coll[Byte] //3 bytes
+  def votes: MinerVotes //3 bytes
 }
 
 /** Represents data available in Sigma language using `CONTEXT` global variable*/

@@ -83,4 +83,18 @@ package object sigma {
 
   type ModifierIdBytes = ModifierIdBytes.Type
   implicit val ModifierIdBytesRType: RType[ModifierIdBytes] = RType[Coll[Byte]].asInstanceOf[RType[ModifierIdBytes]]
+
+  object MinerVotes extends TaggedType[Coll[Byte]] {
+    val size: Int = 3
+  }
+
+  type MinerVotes = MinerVotes.Type
+  implicit val MinerVotesRType: RType[MinerVotes] = RType[Coll[Byte]].asInstanceOf[RType[MinerVotes]]
+
+  object NonceBytes extends TaggedType[Coll[Byte]] {
+    val size: Int = 8
+  }
+
+  type NonceBytes = NonceBytes.Type
+  implicit val NonceBytesRType: RType[NonceBytes] = RType[Coll[Byte]].asInstanceOf[RType[NonceBytes]]
 }

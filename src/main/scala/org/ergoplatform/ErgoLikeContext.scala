@@ -13,7 +13,7 @@ import sigmastate.serialization.{GroupElementSerializer, OpCodes, SigmaSerialize
 import sigmastate.serialization.OpCodes.OpCode
 import special.collection.Coll
 import special.sigma
-import special.sigma.{AnyValue, Box, GroupElement, Header, ModifierIdBytes, PreHeader}
+import special.sigma.{AnyValue, Box, GroupElement, Header, MinerVotes, ModifierIdBytes, PreHeader}
 import SType._
 import RType._
 import org.ergoplatform.ErgoConstants.ScriptCostLimit
@@ -134,7 +134,7 @@ object ErgoLikeContext extends JsonCodecs {
     nBits = 0,
     height = currentHeight,
     minerPk = GroupElementSerializer.parse(SigmaSerializer.startReader(minerPk)),
-    votes = Colls.emptyColl[Byte]
+    votes = MinerVotes @@ Colls.emptyColl[Byte]
   )
 
   /** Maximimum number of headers in `headers` collection of the context. */

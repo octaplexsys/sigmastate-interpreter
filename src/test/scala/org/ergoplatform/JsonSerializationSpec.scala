@@ -9,10 +9,8 @@ class JsonSerializationSpec extends SigmaTestingCommons with SerializationSpecif
 
   property("ErgoLikeContext should be encoded into JSON and decoded back correctly") {
     forAll(ergoLikeContextGen) { ctx =>
-
       val ctxJson: Json = ctx.asJson
       val ctxDecoded: ErgoLikeContext = ctxJson.as[ErgoLikeContext].toTry.get
-
       // TODO: implement ErgoLikeContext.equals
       ctxDecoded shouldEqual ctx
     }
