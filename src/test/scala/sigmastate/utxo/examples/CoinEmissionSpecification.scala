@@ -11,6 +11,8 @@ import sigmastate.utxo.blockchain.BlockchainSimulationTestingCommons._
 import sigmastate.utxo._
 import sigmastate._
 import sigmastate.eval._
+import special.sigma._
+
 
 /**
   * An example of currency emission contract.

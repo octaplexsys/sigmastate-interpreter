@@ -7,24 +7,24 @@ import org.bouncycastle.math.ec.ECPoint
 import org.ergoplatform.ErgoBox
 import org.ergoplatform.validation.ValidationRules
 import scorex.crypto.authds.avltree.batch._
-import scorex.crypto.authds.{ADDigest, ADKey, SerializedAdProof, ADValue}
+import scorex.crypto.authds.{ADDigest, ADKey, ADValue, SerializedAdProof}
 import sigmastate.SCollection.SByteArray
 import sigmastate.{TrivialProp, _}
-import sigmastate.Values.{Constant, EvaluatedValue, SValue, ConstantNode, Value, ErgoTree, SigmaBoolean}
+import sigmastate.Values.{Constant, ConstantNode, ErgoTree, EvaluatedValue, SValue, SigmaBoolean, Value}
 import sigmastate.interpreter.CryptoConstants.EcPointType
 import sigmastate.interpreter.{CryptoConstants, Interpreter}
-import special.collection.{Size, CSizeOption, SizeColl, CCostedBuilder, CollType, SizeOption, CostedBuilder, Coll}
+import special.collection.{CCostedBuilder, CSizeOption, Coll, CollType, CostedBuilder, Size, SizeColl, SizeOption}
 import special.sigma.{Box, _}
 import sigmastate.eval.Extensions._
 import spire.syntax.all.cfor
-import scala.util.{Success, Failure}
+import scala.util.{Failure, Success}
 import scalan.RType
-import scorex.crypto.hash.{Digest32, Sha256, Blake2b256}
+import scorex.crypto.hash.{Blake2b256, Digest32, Sha256}
 import sigmastate.basics.DLogProtocol.ProveDlog
 import sigmastate.basics.ProveDHTuple
 import sigmastate.lang.Terms.OperationId
 import sigmastate.serialization.ErgoTreeSerializer.DefaultSerializer
-import sigmastate.serialization.{SigmaSerializer, GroupElementSerializer}
+import sigmastate.serialization.{GroupElementSerializer, SigmaSerializer}
 import special.Types.TupleType
 
 import scala.reflect.ClassTag
@@ -418,13 +418,13 @@ case class CHeader(
                     id: Coll[Byte],
                     version: Byte,
                     parentId: Coll[Byte],
-                    ADProofsRoot: Coll[Byte],
+                    ADProofsRoot: Digest32Coll,
                     stateRoot: AvlTree,
-                    transactionsRoot: Coll[Byte],
+                    transactionsRoot: Digest32Coll,
                     timestamp: Long,
                     nBits: Long,
                     height: Int,
-                    extensionRoot: Coll[Byte],
+                    extensionRoot: Digest32Coll,
                     minerPk: GroupElement,
                     powOnetimePk: GroupElement,
                     powNonce: Coll[Byte],

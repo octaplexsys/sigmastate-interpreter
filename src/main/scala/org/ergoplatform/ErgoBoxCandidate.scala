@@ -12,6 +12,7 @@ import sigmastate.SType.AnyOps
 import sigmastate.lang.Terms._
 import sigmastate.serialization.SigmaSerializer
 import sigmastate.utils.{SigmaByteReader, SigmaByteWriter}
+import special.sigma._
 import special.collection.Coll
 import sigmastate.eval._
 import sigmastate.eval.Extensions._

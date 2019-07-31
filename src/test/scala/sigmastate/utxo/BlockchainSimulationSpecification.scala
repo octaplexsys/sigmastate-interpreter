@@ -16,6 +16,7 @@ import sigmastate.interpreter.ContextExtension
 import sigmastate.eval._
 import sigmastate.interpreter.Interpreter.{ScriptNameProp, emptyEnv}
 import sigmastate.{AvlTreeData, AvlTreeFlags, GE}
+import special.sigma._
 
 import scala.annotation.tailrec
 import scala.collection.concurrent.TrieMap

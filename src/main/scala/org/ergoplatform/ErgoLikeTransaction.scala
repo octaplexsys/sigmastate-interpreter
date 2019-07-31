@@ -13,6 +13,7 @@ import sigmastate.interpreter.ProverResult
 import sigmastate.serialization.SigmaSerializer
 import sigmastate.utils.{SigmaByteReader, SigmaByteWriter}
 import special.collection.ExtensionMethods._
+import special.sigma._
 import sigmastate.eval.Extensions._
 import spire.syntax.all.cfor
 

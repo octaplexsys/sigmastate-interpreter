@@ -12,6 +12,7 @@ import sigmastate.serialization.generators.ObjectGenerators
 import sigmastate.eval._
 import sigmastate.eval.Extensions._
 import sigmastate.SType._
+import special.sigma._
 
 class ErgoLikeTransactionSpec extends PropSpec
   with GeneratorDrivenPropertyChecks

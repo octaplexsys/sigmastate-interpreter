@@ -5,6 +5,9 @@ import java.math.BigInteger
 import org.bouncycastle.math.ec.ECPoint
 import scalan.RType
 import scalan.RType.GeneralType
+import scorex.crypto.hash.Digest32
+import special.collection.Coll
+import supertagged.TaggedType
 
 import scala.reflect.{ClassTag, classTag}
 
@@ -65,4 +68,15 @@ package object sigma {
   implicit val SizeBuilderRType: RType[SizeBuilder] = RType.fromClassTag(classTag[SizeBuilder])
 
   def argRType(name: String): RType[Any] = ArgType(name)
+
+  trait BaseDigestColl extends TaggedType[Coll[Byte]]
+
+  type DigestColl = BaseDigestColl#Type
+
+  object Digest32Coll extends BaseDigestColl
+
+  type Digest32Coll = Digest32Coll.Type
+  implicit val Digest32CollRType: RType[Digest32Coll] = RType[Coll[Byte]].asInstanceOf[RType[Digest32Coll] ]
+  implicit val Digest32RType: RType[Digest32] = RType[Array[Byte]].asInstanceOf[RType[Digest32] ]
+
 }

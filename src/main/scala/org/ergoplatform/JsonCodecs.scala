@@ -10,10 +10,11 @@ import scorex.crypto.hash.Digest32
 import scorex.util.ModifierId
 import sigmastate.Values.{ErgoTree, EvaluatedValue}
 import sigmastate.eval.{CGroupElement, CPreHeader, WrapperOf, _}
+import sigmastate.eval.Extensions._
 import sigmastate.serialization.{ErgoTreeSerializer, ValueSerializer}
 import sigmastate.{AvlTreeData, SType}
 import special.collection.Coll
-import special.sigma.{Header, PreHeader}
+import special.sigma.{Digest32Coll, Header, PreHeader}
 
 import scala.util.Try
 
@@ -62,6 +63,9 @@ trait JsonCodecs {
   implicit val digest32Encoder: Encoder[Digest32] = _.array.asJson
   implicit val digest32Decoder: Decoder[Digest32] = bytesDecoder(Digest32 @@ _)
 
+  implicit val digest32CollEncoder: Encoder[Digest32Coll] = _.asJson
+  implicit val digest32CollDecoder: Decoder[Digest32Coll] = bytesDecoder(Digest32Coll @@ _.toColl)
+
   implicit val modifierIdEncoder: Encoder[ModifierId] = _.asInstanceOf[String].asJson
 
   implicit val registerIdEncoder: KeyEncoder[NonMandatoryRegisterId] = { regId =>
@@ -100,13 +104,13 @@ trait JsonCodecs {
       id <- cursor.downField("id").as[Coll[Byte]]
       version <- cursor.downField("version").as[Byte]
       parentId <- cursor.downField("parentId").as[Coll[Byte]]
-      adProofsRoot <- cursor.downField("adProofsRoot").as[Coll[Byte]]
+      adProofsRoot <- cursor.downField("adProofsRoot").as[Digest32Coll]
       stateRoot <- cursor.downField("stateRoot").as[AvlTreeData]
-      transactionsRoot <- cursor.downField("transactionsRoot").as[Coll[Byte]]
+      transactionsRoot <- cursor.downField("transactionsRoot").as[Digest32Coll]
       timestamp <- cursor.downField("timestamp").as[Long]
       nBits <- cursor.downField("nBits").as[Long]
       height <- cursor.downField("height").as[Int]
-      extensionRoot <- cursor.downField("extensionRoot").as[Coll[Byte]]
+      extensionRoot <- cursor.downField("extensionRoot").as[Digest32Coll]
       minerPk <- cursor.downField("minerPk").as[Coll[Byte]]
       powOnetimePk <- cursor.downField("powOnetimePk").as[Coll[Byte]]
       powNonce <- cursor.downField("powNonce").as[Coll[Byte]]

@@ -21,7 +21,7 @@ import sigmastate.interpreter.{ContextExtension, CryptoConstants, ProverResult}
 import sigmastate.lang.TransformingSigmaBuilder.{mkAppend, mkAtLeast, mkBoolToSigmaProp, mkByteArrayToBigInt, mkByteArrayToLong, mkCollectionConstant, mkConstant, mkDeserializeContext, mkDeserializeRegister, mkDivide, mkDowncast, mkEQ, mkExists, mkExtractAmount, mkExtractBytes, mkExtractBytesWithNoRef, mkExtractCreationInfo, mkExtractId, mkExtractScriptBytes, mkFilter, mkFold, mkForAll, mkGE, mkGT, mkLE, mkLT, mkMapCollection, mkMax, mkMin, mkMinus, mkModulo, mkMultiply, mkNEQ, mkPlus, mkSigmaAnd, mkSigmaOr, mkSizeOf, mkSlice, mkTaggedVariable, mkTuple}
 import sigmastate._
 import sigmastate.utxo.{Append, ByIndex, DeserializeContext, DeserializeRegister, Exists, ExtractAmount, ExtractBytes, ExtractBytesWithNoRef, ExtractCreationInfo, ExtractId, ExtractRegisterAs, ExtractScriptBytes, Filter, Fold, ForAll, GetVar, MapCollection, OptionGet, OptionGetOrElse, OptionIsDefined, SizeOf, Slice, Transformer}
-import special.sigma.{AvlTree, Header, PreHeader, SigmaProp}
+import special.sigma._
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ListBuffer
@@ -626,9 +626,9 @@ trait ObjectGenerators extends TypeGenerators with ValidationSpecification with 
       ErgoTree.withoutSegregation))
   } yield treeBuilder(prop)
 
-  val headerGen: Gen[Header] = ???
-  val preHeaderGen: Gen[PreHeader] = ???
-  val validationSettingsGen: Gen[SigmaValidationSettings] = ???
+  lazy val headerGen: Gen[Header] = ???
+  lazy val preHeaderGen: Gen[PreHeader] = ???
+  lazy val validationSettingsGen: Gen[SigmaValidationSettings] = ???
 
   val ergoLikeContextGen: Gen[ErgoLikeContext] = for {
     avlTreeData <- avlTreeDataGen

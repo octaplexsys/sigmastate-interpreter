@@ -479,13 +479,13 @@ trait Header {
   def parentId: Coll[Byte] //
 
   /** Hash of ADProofs for transactions in a block */
-  def ADProofsRoot: Coll[Byte] // Digest32. Can we build AvlTree out of it?
+  def ADProofsRoot: Digest32Coll // Can we build AvlTree out of it?
 
   /** AvlTree) of a state after block application */
   def stateRoot: AvlTree
 
   /** Root hash (for a Merkle tree) of transactions in a block. */
-  def transactionsRoot: Coll[Byte]  // Digest32
+  def transactionsRoot: Digest32Coll
 
   /** Block timestamp (in milliseconds since beginning of Unix Epoch) */
   def timestamp: Long
@@ -498,7 +498,7 @@ trait Header {
   def height: Int
 
   /** Root hash of extension section */
-  def extensionRoot: Coll[Byte] // Digest32
+  def extensionRoot: Digest32Coll
 
   /** Miner public key. Should be used to collect block rewards.
     * Part of Autolykos solution. */

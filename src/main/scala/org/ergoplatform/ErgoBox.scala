@@ -16,6 +16,7 @@ import sigmastate.SCollection.SByteArray
 import sigmastate.utils.{Helpers, SigmaByteReader, SigmaByteWriter}
 import sigmastate.utxo.ExtractCreationInfo
 import special.collection._
+import special.sigma._
 import sigmastate.eval._
 import sigmastate.eval.Extensions._
 

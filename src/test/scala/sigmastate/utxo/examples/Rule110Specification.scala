@@ -12,6 +12,7 @@ import sigmastate.lang.Terms._
 import sigmastate.serialization.ValueSerializer
 import sigmastate.utxo._
 import sigmastate.utxo.blockchain.BlockchainSimulationTestingCommons._
+import special.sigma._
 
 /**
   * Wolfram's Rule110 implementations

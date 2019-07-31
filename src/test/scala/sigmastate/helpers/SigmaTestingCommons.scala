@@ -21,7 +21,6 @@ import sigmastate.serialization.{ValueSerializer, SigmaSerializer}
 import sigmastate.{SGroupElement, SType}
 import sigmastate.eval.{CompiletimeCosting, IRContext, Evaluation, _}
 import sigmastate.interpreter.CryptoConstants.EcPointType
-import special.sigma
 
 import scala.annotation.tailrec
 import scala.language.implicitConversions
@@ -109,10 +108,10 @@ trait SigmaTestingCommons extends PropSpec
     override private[sigmastate] def onResult[T](env: ScriptEnv,
                                      tree: SValue,
                                      result: RCostingResultEx[T],
-                                     ctx: sigma.Context,
+                                     ctx: special.sigma.Context,
                                      estimatedCost: Int,
-                                     calcCtx: sigma.Context,
-                                     executedResult: sigma.SigmaProp,
+                                     calcCtx: special.sigma.Context,
+                                     executedResult: special.sigma.SigmaProp,
                                      executionTime: Long): Unit = {
       if (outputComputedResults) {
         val name = env.get(Interpreter.ScriptNameProp).getOrElse("")
