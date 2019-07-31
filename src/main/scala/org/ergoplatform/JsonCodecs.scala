@@ -14,7 +14,7 @@ import sigmastate.eval.Extensions._
 import sigmastate.serialization.{ErgoTreeSerializer, ValueSerializer}
 import sigmastate.{AvlTreeData, SType}
 import special.collection.Coll
-import special.sigma.{Digest32Coll, Header, PreHeader}
+import special.sigma.{Digest32Coll, Header, ModifierIdBytes, PreHeader}
 
 import scala.util.Try
 
@@ -68,6 +68,9 @@ trait JsonCodecs {
 
   implicit val modifierIdEncoder: Encoder[ModifierId] = _.asInstanceOf[String].asJson
 
+  implicit val modifierIdBytesEncoder: Encoder[ModifierIdBytes] = _.asJson
+  implicit val modifierIdBytesDecoder: Decoder[ModifierIdBytes] = bytesDecoder(ModifierIdBytes @@ _.toColl)
+
   implicit val registerIdEncoder: KeyEncoder[NonMandatoryRegisterId] = { regId =>
     s"R${regId.number}"
   }
@@ -101,9 +104,9 @@ trait JsonCodecs {
 
   implicit val headerDecoder: Decoder[Header] = { cursor =>
     for {
-      id <- cursor.downField("id").as[Coll[Byte]]
+      id <- cursor.downField("id").as[ModifierIdBytes]
       version <- cursor.downField("version").as[Byte]
-      parentId <- cursor.downField("parentId").as[Coll[Byte]]
+      parentId <- cursor.downField("parentId").as[ModifierIdBytes]
       adProofsRoot <- cursor.downField("adProofsRoot").as[Digest32Coll]
       stateRoot <- cursor.downField("stateRoot").as[AvlTreeData]
       transactionsRoot <- cursor.downField("transactionsRoot").as[Digest32Coll]
@@ -135,7 +138,7 @@ trait JsonCodecs {
   implicit val preHeaderDecoder: Decoder[PreHeader] = { cursor =>
     for {
       versionId <- cursor.downField("versionId").as[Byte]
-      parentId <- cursor.downField("parentId").as[Coll[Byte]]
+      parentId <- cursor.downField("parentId").as[ModifierIdBytes]
       timeStamp <- cursor.downField("timeStamp").as[Long]
       nBits <- cursor.downField("nBits").as[Long]
       height <- cursor.downField("height").as[Int]

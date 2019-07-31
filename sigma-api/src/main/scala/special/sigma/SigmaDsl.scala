@@ -446,7 +446,7 @@ trait PreHeader { // Testnet2
   def version: Byte
 
   /** Id of parent block */
-  def parentId: Coll[Byte] // ModifierId
+  def parentId: ModifierIdBytes
 
   /** Block timestamp (in milliseconds since beginning of Unix Epoch) */
   def timestamp: Long
@@ -470,13 +470,13 @@ trait PreHeader { // Testnet2
 @scalan.Liftable
 trait Header {
   /** Bytes representation of ModifierId of this Header */
-  def id: Coll[Byte]
+  def id: ModifierIdBytes
 
   /** Block version, to be increased on every soft and hardfork. */
   def version: Byte
 
   /** Bytes representation of ModifierId of the parent block */
-  def parentId: Coll[Byte] //
+  def parentId: ModifierIdBytes
 
   /** Hash of ADProofs for transactions in a block */
   def ADProofsRoot: Digest32Coll // Can we build AvlTree out of it?

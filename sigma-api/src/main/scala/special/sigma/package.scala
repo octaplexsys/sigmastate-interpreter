@@ -79,4 +79,8 @@ package object sigma {
   implicit val Digest32CollRType: RType[Digest32Coll] = RType[Coll[Byte]].asInstanceOf[RType[Digest32Coll] ]
   implicit val Digest32RType: RType[Digest32] = RType[Array[Byte]].asInstanceOf[RType[Digest32] ]
 
+  object ModifierIdBytes extends TaggedType[Coll[Byte]]
+
+  type ModifierIdBytes = ModifierIdBytes.Type
+  implicit val ModifierIdBytesRType: RType[ModifierIdBytes] = RType[Coll[Byte]].asInstanceOf[RType[ModifierIdBytes]]
 }

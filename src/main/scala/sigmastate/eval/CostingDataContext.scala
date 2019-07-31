@@ -406,7 +406,7 @@ object CFunc {
 
 case class CPreHeader(
                        version: Byte,
-                       parentId: Coll[Byte],
+                       parentId: ModifierIdBytes,
                        timestamp: Long,
                        nBits: Long,
                        height: Int,
@@ -415,9 +415,9 @@ case class CPreHeader(
                      ) extends PreHeader {}
 
 case class CHeader(
-                    id: Coll[Byte],
+                    id: ModifierIdBytes,
                     version: Byte,
-                    parentId: Coll[Byte],
+                    parentId: ModifierIdBytes,
                     ADProofsRoot: Digest32Coll,
                     stateRoot: AvlTree,
                     transactionsRoot: Digest32Coll,

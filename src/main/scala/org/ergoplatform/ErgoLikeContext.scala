@@ -13,13 +13,14 @@ import sigmastate.serialization.{GroupElementSerializer, OpCodes, SigmaSerialize
 import sigmastate.serialization.OpCodes.OpCode
 import special.collection.Coll
 import special.sigma
-import special.sigma.{AnyValue, Box, GroupElement, Header, PreHeader}
+import special.sigma.{AnyValue, Box, GroupElement, Header, ModifierIdBytes, PreHeader}
 import SType._
 import RType._
 import org.ergoplatform.ErgoConstants.ScriptCostLimit
 import org.ergoplatform.settings.Algos
 import org.ergoplatform.validation.{SigmaValidationSettings, ValidationRules}
 import spire.syntax.all.cfor
+
 import scala.util.Try
 
 case class BlockchainState(currentHeight: Height, lastBlockUtxoRoot: AvlTreeData)
@@ -128,7 +129,7 @@ object ErgoLikeContext extends JsonCodecs {
   val noBoxes = IndexedSeq.empty[ErgoBox]
   val noHeaders = CostingSigmaDslBuilder.Colls.emptyColl[Header]
   def dummyPreHeader(currentHeight: Height, minerPk: Array[Byte]): PreHeader = CPreHeader(0,
-    parentId = Colls.emptyColl[Byte],
+    parentId = ModifierIdBytes @@ Colls.emptyColl[Byte],
     timestamp = 3,
     nBits = 0,
     height = currentHeight,

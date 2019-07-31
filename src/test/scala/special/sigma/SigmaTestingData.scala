@@ -49,9 +49,9 @@ trait SigmaTestingData extends SigmaTestingCommons with SigmaTypeGens {
     Seq(tokenId1 -> 10L, tokenId2 -> 20L),
     Map(ErgoBox.R4 -> IntConstant(100), ErgoBox.R5 -> BooleanConstant(true)))
 
-  val header1: Header = CHeader(Blake2b256("Header.id").toColl,
+  val header1: Header = CHeader(ModifierIdBytes @@ Blake2b256("Header.id").toColl,
     0,
-    Blake2b256("Header.parentId").toColl,
+    ModifierIdBytes @@ Blake2b256("Header.parentId").toColl,
     Digest32Coll @@ Blake2b256("ADProofsRoot").toColl,
     sampleAvlTree,
     Digest32Coll @@ Blake2b256("transactionsRoot").toColl,
@@ -65,7 +65,7 @@ trait SigmaTestingData extends SigmaTestingCommons with SigmaTypeGens {
     powDistance = SigmaDsl.BigInt(BigInt("1405498250268750867257727119510201256371618473728619086008183115260323").bigInteger),
     votes = Colls.fromArray(Array[Byte](0, 1, 2))
   )
-  val header2: Header = CHeader(Blake2b256("Header2.id").toColl,
+  val header2: Header = CHeader(ModifierIdBytes @@ Blake2b256("Header2.id").toColl,
     0,
     header1.id,
     Digest32Coll @@ Blake2b256("ADProofsRoot2").toColl,
