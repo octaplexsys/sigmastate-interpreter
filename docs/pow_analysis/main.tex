@@ -353,5 +353,31 @@ Security follows if we assume that Schnorr signatures are unforgeable. Outsourci
 \subsubsection{Security} 
 The same $w$ (and thus, $x$) should never be reused, otherwise this will leak the secret ${s}$ as follows. Let $d = xr-{s}$ and $d' = xr'-{s}$ be two solutions. Then $x = (d-d')/(r-r')$, using which we can compute $s$. One way to ensure that $x$ is never reused for two different messages is to keep $x = f(s, m)$, where $f$ is a collision resistant hash function.
 
+\subsection{Distributed Mining}
+
+Note that for any solution $(m, p, w, n, d)$ generated using secrets $(s, x)$, anyone knowing one of the secrets can compute the other due to the relation $d = rx+s$ with public $r$. Thus, someone either knows both the secrets $(x, s)$ or none of them, and we cannot construct pooled mining schemes where the participant knows $x$ but not $s$ (needed for spending). The only possible alternative is to compute $rx+s$ knowing only $r$. 
+
+
+We show that it is indeed possible for several parties to know $rx+s$ for some given $r$ without knowing $(r, s)$. 
+The method we describe below requires the parties to make one public broadcast of several GBs per block. While not very useful currently due to the data transfer overhead, this may become practical in the future when this can be achieved. 
+
+First we give some notation. For any $a\in \mathbb{Z}_q$, we denote $[a]$ as the Shamir sharing of $a$ over $\alpha$ people with threshold $\beta$. Recall that for $[a]$ having shares $a_1, a_2\ldots, a_\alpha$, we can compute $a$ if at least $\beta+1$ parties reveal their shares as follows. Let $J\subset [1\ldots\alpha]$ be such that  $|J| = \beta + 1$. Then: 
+
+
+$$a = \sum_{j\in J}\left(a_j\prod_{i\in J, i\neq j}\frac{-i}{j-i}\right)$$
+
+
+Since the discrete log problem in $G$ is hard, each party $i$ can safely reveal $b_i = g^{a_i}$ for $i \in [1..\alpha]$ to the entire world via a public bulletin board. While $b_i$ does not leak anything useful about $a_i$, it allows everyone to compute $g^a$ using the relation:
+
+$$g^a = \prod_{j\in J}{b_j}^{\prod_{i\in J, i\neq j}\frac{-i}{j-i}}$$
+
+Assume that somehow the parties have obtained sharing of private keys $[s]$ and $[x]$. They can compute the corresponding public keys $p, w$ using the public bulletin board as explained above, from which they can compute $r$. 
+
+Each party $i$ can then locally compute the Shamir sharing $[d]$ of $d = rx+s$ using the relation $d_i = rx_i+s_i$.
+The parties then post the shares $d_i$ on the public bulletin board so that everyone can compute $d$ in the clear.
+
+
+It remains to show how the parties can generate the initial sharings $[s]$ and $[x]$ without a dealer so that none of them know the secrets. This can be done using Replicated Secret Sharing (RSS) as described in~\cite{d9.1}, which allows each party to non-interactively generate a large number of such shares after some small pre-computation.
+
 
 \end{document}
