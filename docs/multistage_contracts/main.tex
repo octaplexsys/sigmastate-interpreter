@@ -94,9 +94,19 @@
 		
 		Given that the scripts that are specified for future outputs as well as data are not stored on-chain, how can one make sure that all contract participants have the information needed to execute a smart contract?
 		}
-Since the advent of blockchains such as Bitcoin and in particular Ethereum, the concept of ``smart contracts'' has gained a lot of attention. Since Bitcoin was designed primarily as a currency system, its design focussed only on scalability. In particular, Bitcoin uses short-lived immutable data structures (called UTXOs) for storage. Ethereum, on the other hand, is a general-purpose platform and uses long-lived mutable data structures (called {\em accounts}) because UTXOs lack persistent storage.
-In this work, we describe a new blockchain platform called {\em Ergo} that provides Ethereum-like functionality despite being UTXO-based. 
-This is possible due to a new technique called {\em transaction trees} that can emulate persistent storage in UTXO based systems. We demonstrate this via several examples which include contracts for a Rock-Paper-Scissors game, crowdfunding and an initial coin offering (ICO).
+
+%Since the advent of blockchains such as Bitcoin and in particular Ethereum, the concept of ``smart contracts'' has gained a lot of attention. 
+Smart contract platforms such as Bitcoin and Ethereum allow writing programs that run on a decentralized computer. Bitcoin uses short-lived immutable data structures called UTXOs for data manipulation. Ethereum, on the other hand uses, long-lived mutable data structures called {\em accounts}. UTXOs are easier to handle, less error prone and scale better because the only operation we can do with them  is to create or destroy (i.e., spend) them. The code inside a UTXO is executed only once, when it is spent. Additionally, this code refers to only local context (i.e., it is stateless). In Ethereum's account based system, there is a shared global context which each account can access and modify, thereby causing side affects. 
+%Furthermore, Ethereum's language is not decidable and this has its own set of drawbacks. 
+However, the benefit of persistent storage offered by accounts makes up for these drawbacks. 
+In this work, we describe how to emulate persistent storage in UTXO based systems using a technique called {\em transaction trees}. This allows us to emulate the functionality of account-based systems such as Ethereum without the overhead of accounts. 
+We demonstrate this via several examples which include contracts for a Rock-Paper-Scissors game, crowdfunding and an initial coin offering (ICO). The contracts are created in a UTXO based smart contract platform called Ergo that supports transaction trees. 
+%
+%% An example of This is possible if the underlying scripting language supports {\em transaction trees}
+%
+%
+%% blockchain platform called {\em Ergo} that provides Ethereum-like functionality despite being UTXO-based. 
+%This is possible due to a new technique called {\em transaction trees} that can emulate persistent storage in UTXO based systems. We demonstrate this via several examples which include contracts for a Rock-Paper-Scissors game, crowdfunding and an initial coin offering (ICO).
 
 \end{abstract}
 
@@ -134,9 +144,8 @@ This was used to construct a Turing complete language by emulating Rule-110~\cit
 While the results of~\cite{CKM18a} allow UTXO-based systems to emulate Ethereum-like functionality, at least in theory, a practical solution for the same is desirable. In particular, we need higher-level abstractions (instead of Rule-110) that enable UTXO-based systems to efficiently emulate Ethereum functionality and maintain Bitcoin's scalability. Ergo is one such platform.
 
 %, provided that the underlying contract language supports it
-\textbf{Context Enrichment.} Ergo is able to support transaction trees by putting the entire spending transaction into the execution context, so that we can encode predicates about other inputs and outputs of the transaction. 
-
-In particular, for any UTXO based blockchain, we can define the following levels of context enrichment, where each level extends the previous:
+\textbf{Context Enrichment.} The main idea behing Ergo is that of enriching the local context. In Bitcoin and other UTXO systems, the context is just the UTXO being processed. However, we can have various levels of local contexts.
+In particular, for any UTXO based blockchain, we can define the following levels of context, each extending the previous:
 \begin{enumerate}
 	\item The current UTXO plus the blockchain height and time
 	\item The current spending transaction (other inputs and outputs)
@@ -144,7 +153,12 @@ In particular, for any UTXO based blockchain, we can define the following levels
 	\item The current block (other sibling transactions)
 \end{enumerate}
 
-In this scale, Bitcoin is at Level 1, while Ergo is at Level 3. Note that in Level 4 it is not possible to check validity of a transaction independently of other transactions. Hence it is more complex to implement. 
+%Assume that the scripting language supports writing predicates using the context variables available at that level. 
+
+Any platform at Level 2 and above is suitable for transaction trees. In this regard, Bitcoin is at Level 1, while Ergo is at Level 3. 
+%particular, if we include more than the UTXOable to support transaction trees by putting the entire spending transaction into the execution context, so that we can encode predicates about other inputs and outputs of the transaction. 
+
+Note that in Level 4 it is not possible to check validity of a transaction independently of other transactions. Hence it is more complex to implement. 
 
 %supports the first three. 
 %Note that we don't go beyond the block because anything other than the current block will require global state access
