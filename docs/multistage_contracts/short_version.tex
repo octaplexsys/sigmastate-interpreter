@@ -89,25 +89,11 @@
 
 
 \begin{abstract}
-	\ignore{
-		The paper does not describe the system and its properties well. It only gives a short high level overview and then just provides some example smart contracts. The authors should add a proper system overview and a more detailed description of how a contract is deployed and executed. For example, what roles are there in the system and what steps are taken to execute a transaction (e.g. as sequence diagram). It is also not clear what the actual research contributions are. What are the challenges for creating such a system?
-		
-		Given that the scripts that are specified for future outputs as well as data are not stored on-chain, how can one make sure that all contract participants have the information needed to execute a smart contract?
-		}
 
-%Since the advent of blockchains such as Bitcoin and in particular Ethereum, the concept of ``smart contracts'' has gained a lot of attention. 
 Smart contract platforms such as Bitcoin and Ethereum allow writing programs that run on a decentralized computer. Bitcoin uses short-lived immutable data structures called UTXOs for data manipulation. Ethereum, on the other hand uses, long-lived mutable data structures called {\em accounts}. UTXOs are easier to handle, less error prone and scale better because the only operation we can do with them  is to create or destroy (i.e., spend) them. The code inside a UTXO is executed only once, when it is spent. Additionally, this code refers to only local context (i.e., it is stateless). In Ethereum's account based system, there is a shared global context which each account can access and modify, thereby causing side affects. 
-%Furthermore, Ethereum's language is not decidable and this has its own set of drawbacks. 
 However, the benefit of persistent storage offered by accounts makes up for these drawbacks. 
 In this work, we describe how to emulate persistent storage in UTXO based systems using a technique called {\em transaction trees}. This allows us to emulate the functionality of account-based systems such as Ethereum without the overhead of accounts. 
 We demonstrate this via several examples which include contracts for a Rock-Paper-Scissors game, crowdfunding and an initial coin offering (ICO). The contracts are created in a UTXO based smart contract platform called Ergo that supports transaction trees. 
-%
-%% An example of This is possible if the underlying scripting language supports {\em transaction trees}
-%
-%
-%% blockchain platform called {\em Ergo} that provides Ethereum-like functionality despite being UTXO-based. 
-%This is possible due to a new technique called {\em transaction trees} that can emulate persistent storage in UTXO based systems. We demonstrate this via several examples which include contracts for a Rock-Paper-Scissors game, crowdfunding and an initial coin offering (ICO).
-
 \end{abstract}
 
 
@@ -117,39 +103,16 @@ Smart contracts were envisioned in 1994 by Nick Szabo~\cite{szabo1997idea}, a le
 Bitcoin~\cite{Nak08} can be seen as the first implementation of this concept using a fully decentralized ledger whose contracts primarily pertain to transfer and store of value, i.e., as a currency system. 
 Ethereum~\cite{wood2014ethereum} is an example of a general-purpose smart contract platform. 
 
-\ignore{
-A useful way of representing a smart contract platform is to consider it as a {\em singleton computer}, where only one single-threaded instance exists in the entire world and everyone can use it for storage and computation by writing code in a language that the computer understands.
-Bitcoin's language supports limited types of smart contracts, since its primary design goal was for a currency system. In this way, can think of Bitcoin as an {\em application specific} singleton computer, while Ethereum can be considered a {\em general purpose} singleton computer.
-}
-
-%\subsection{Bitcoin Versus Ethereum}
 The limited application of Bitcoin allows optimizations focussed on long-term survivability and scalability. Firstly, all data and code is stored in short-lived immutable objects (called UTXOs~\cite{utxo}). A user can execute code inside a UTXO by supplying some input (which may contain additional code). A UTXO is destroyed once its code is executed (i.e., it is spent). Secondly, all computation is performed within a {\em local context}; any code pertaining to a UTXO can only operate on data for that UTXO and does not have access to the global state. 
-%Finally, the instruction set is limited enough to guarantee that the language is {\em Turing decidable}. In particular, every program of size $n$ terminates in $\Theta(n)$ steps. 
 
 In contrast, Ethereum follows a different set of design principles in which the code and data is contained in long-lived mutable objects called {\em accounts}. This was done because UTXOs are stateless and do not provide persistent storage. 
 Not only can Ethereum code modify data in its own account, but also trigger execution of code in other accounts. Thus, Ethereum code operates over a {\em shared global context} representing all existing accounts. 
-%Additionally, Ethereum's contract writing language is Turing complete with a cost component: every instruction incurs a non-refundable cost, called {\em gas}, that must be paid beforehand (any still executing contract is reset to its initial stage once the gas runs out). 
-%All these features allow sophisticated contracts. However, they also cause several scalability and security issues, which are still being addressed~\cite{Luu:2016:MSC:2976749.2978309,hackernoon17}. 
-
-%Ethereum followed these principles because of the  belief 
-%that 
-%Turing completeness are necessary for a general-purpose singleton computer, and that 
-%immutable objects are not suitable for smart contracts because they lack persistent storage, and thus, cannot encode Turing complete programs. 
-
-%Firstly, we note that even the most advanced contracts written in Ethereum do not require Turing completeness~\cite{hackernoon16,hackernoon17}. Nor does being Turing complete imply suitability for writing complex contracts. For example, the Rule 110 \cite{Cook_2009,neary2006p} 
-%and Conway's Game of Life~\cite{rendell2014turing} 
-%cellular automation is Turing complete but impractical for real-world use. 
-%Secondly, while UTXOs lack persistent storage, we can achieve the same by propagating data across multiple UTXOs using a technique called {\em transaction trees}. 
-%This was used to construct a Turing complete language by emulating Rule-110~\cite{CKM18a}.
 
 The results of~\cite{CKM18a} allow UTXO-based systems to emulate Ethereum-like functionality by reducing the computation to Rule-110~\cite{Cook_2009,neary2006p}. However, such reductions are not very efficient and a more practical solution for the same is desirable. 
 In particular, we need higher-level abstractions (instead of Rule-110) that enable UTXO-based systems to efficiently emulate Ethereum functionality and maintain Bitcoin's scalability. 
 In this work we describe a technique called {\em transaction trees} that allow writing advanced smart contracts in UTXO based systems. As proof of concept, we implemented such contracts on a UTXO-based platform called Ergo that supports transaction trees.
 
-%, provided that the underlying contract language supports it
 \textbf{Context Enrichment.} In Bitcoin and other existing UTXO systems, the context is just the UTXO being processed. In order for a UTXO-based system to support transaction trees, the context must be rich enough to contain at least the entire spending transaction. More formally, 
-%main  Ergo is that of enriching the local context. In Bitcoin and other UTXO systems, the context is just the UTXO being processed. However, we can have various levels of local contexts.
-%To be more precise, 
 for any UTXO based blockchain, we can define the following levels of context, each extending the previous:
 \begin{enumerate}
 	\item The current UTXO plus the blockchain height and time
@@ -158,20 +121,11 @@ for any UTXO based blockchain, we can define the following levels of context, ea
 	\item The current block (other sibling transactions)
 \end{enumerate}
 
-%Assume that the scripting language supports writing predicates using the context variables available at that level. 
-
 Any platform at Level 2 and above is suitable for transaction trees. In this regard, Bitcoin operates at Level 1 and Ergo at Level 3. Note that in Level 4 we cannot check validity of transactions independently of other transactions in the block. Hence it is more complex to implement Level 4. 
-
-%supports the first three. 
-%Note that we don't go beyond the block because anything other than the current block will require global state access
-%However, in order to support this, the underlying language must be capable of encoding predicates about the entire transaction. 
-
 
 
 In this work we show via examples how to create efficient Ethereum-like contracts in the UTXO model using transaction trees. 
 The examples include a Rock-Paper-Scissors game, an Initial Coin Offering (ICO) campaign and a new primitive called {\em reversible addresses} for securely storing funds. 
-%The examples show how to create multi-stage contracts with evolving data and demonstrate how Ergo can cover a majority of use-cases where Ethereum is used.  
-
 
 \section{Ergo Overview}
 \label{ergo-overview}
@@ -289,11 +243,9 @@ A simple loop is a special case of the `if' statement:
 Discussion of such contracts is beyond the scope of this work and we refer the reader to~\cite[Section 3.3.3]{advtutorial} for an example of such a contract. All the examples in this paper are based on transaction trees.
 
 \section{Multi-Stage Contracts}
-%This section contains examples of multi-stage contracts using transaction trees.
+
 \subsection{Reversible Addresses}
 \label{reversible}
-
-% idea, originally proposed for Bitcoin~\cite{raddress},
 
 An example of multi-stage contract is a {\em reversible address}, which has anti-theft features in the following sense: any funds sent to a reversible address can only be spent in way that allows payments to be reversed for a certain time. To motivate this feature, consider managing the hot-wallet of an exchange or mining pool used for handling customer withdraws. A hot-wallet is an address for which the private key is stored on the server. Such addresses are necessary for facilitating automated withdrawals. Being a hot-wallet, its private key is susceptible to compromise and funds being stolen. 
 We want to ensure that we are able to recover any stolen funds in the event of such a compromise, provided that the breach is discovered within, say, 24 hours of the first unauthorized withdraw. %This can be achieved using reversible addresses.
@@ -315,7 +267,6 @@ The following script called \texttt{withdrawScript} implements the second stage.
 }
 
 This above script is referenced in the first stage script given next. 
-%Let \texttt{feeScript} be the script paying fee and \texttt{maxFee} be the maximum allowed fee. 
 
 \small{
 	\begin{verbatim}
@@ -335,22 +286,10 @@ Note that the trusted party (\texttt{carol}) is bound to the hot-wallet address.
 
 Although such addresses are designed for securing hot-wallet funds, the may have other applications. One example is for automated-release escrow payments in online shopping, where \texttt{carol} can be the public key of any mutually agreed adjudicating party. 
 
-
-%For simplicity, our code often refers to another script directly, as in: 
-%\begin{verbatim}
-%    box.propositionBytes = script
-%\end{verbatim}
-%   
-%In practice, however, we would first compute \texttt{scriptHash}, the hash of \texttt{script} and rewrite the above code as: 
-%\begin{verbatim}
-%    blake2b256(box.propositionBytes) == scriptHash
-%\end{verbatim}
-
 \subsection{Rock-Paper-Scissors Game}
 \label{rps}
 
 Our next example of a multi-stage contract is the Rock-Paper-Scissors game, which is often used to introduce Ethereum~\cite{rps15}.
-%to beginners, since it captures many important aspects such as provable fairness, workflow enforcement and adaptive security~\cite{rps15}. 
 The game is played between two players, Alice and Bob. Each player chooses a secret independently and the game is decided after the secrets are revealed. 
 Let $a, b\in \mathbb{Z}_3$ be the secrets of Alice, Bob respectively, with the understanding that (0, 1, 2) represent (rock, paper, scissors). If $a = b$ then the game is a draw, otherwise if $a-b \in \{1, -2\}$ then Alice wins else Bob wins. 
 
@@ -419,7 +358,6 @@ An ICO mirrors an Initial Public Offering (IPO) and provides a mechanism for a p
 \end{enumerate}
 
 Consequently, our ICO consists of 3 contracts, one for each stage such that one stage references the next. 
-%Compared to the previous examples, the contract are quite complex since they involve multiple parties. 
 The number of investors may run into thousands, and the naive solution would store this data in the contract, as in the ERC-20 standard~\cite{erc20}. 
 Unlike Ethereum, Ergo does not permit storing large datasets in a contract. Rather, we store only a 40-bytes header of (a key, value) dictionary, that is authenticated like a Merkle tree~\cite{RMCI17}. To access some elements in the dictionary, or to modify it, a spending transaction should provide lookup or modification proofs. This allows a contract to authenticate large datasets using very little storage and memory. 
 
@@ -444,8 +382,6 @@ The project initiates the ICO by creating a box with the guard script given belo
 	selfIndexIsZero && outputsCorrect && modifiedTree == expectedTree
 	\end{verbatim}
 }
-
-%The \texttt{issuanceScript} variable contains code of the issuance stage script.
 
 The first funding transaction spends this box and creates a box with the same script and updated data. Further funding transactions spend the box created from the previous funding transaction. The box checks that it is first input of each funding transaction, which must have other inputs belonging to investors. The investor inputs contain a hash of the withdraw script in register $R_4$. 
 The script also checks (via proofs) that hashes and monetary values of the investing inputs are correctly added to the dictionary of the new box, which must be only output with the correct amount of ergs (we ignore fee in this example). 
