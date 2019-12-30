@@ -89,25 +89,11 @@
 
 
 \begin{abstract}
-	\ignore{
-		The paper does not describe the system and its properties well. It only gives a short high level overview and then just provides some example smart contracts. The authors should add a proper system overview and a more detailed description of how a contract is deployed and executed. For example, what roles are there in the system and what steps are taken to execute a transaction (e.g. as sequence diagram). It is also not clear what the actual research contributions are. What are the challenges for creating such a system?
-		
-		Given that the scripts that are specified for future outputs as well as data are not stored on-chain, how can one make sure that all contract participants have the information needed to execute a smart contract?
-		}
 
-%Since the advent of blockchains such as Bitcoin and in particular Ethereum, the concept of ``smart contracts'' has gained a lot of attention. 
 Smart contract platforms such as Bitcoin and Ethereum allow writing programs that run on a decentralized computer. Bitcoin uses short-lived immutable data structures called UTXOs for data manipulation. Ethereum, on the other hand uses, long-lived mutable data structures called {\em accounts}. UTXOs are easier to handle, less error prone and scale better because the only operation we can do with them  is to create or destroy (i.e., spend) them. The code inside a UTXO is executed only once, when it is spent. Additionally, this code refers to only local context (i.e., it is stateless). In Ethereum's account based system, there is a shared global context which each account can access and modify, thereby causing side affects. 
-%Furthermore, Ethereum's language is not decidable and this has its own set of drawbacks. 
 However, the benefit of persistent storage offered by accounts makes up for these drawbacks. 
 In this work, we describe how to emulate persistent storage in UTXO based systems using a technique called {\em transaction trees}. This allows us to emulate the functionality of account-based systems such as Ethereum without the overhead of accounts. 
 We demonstrate this via several examples which include contracts for a Rock-Paper-Scissors game, crowdfunding and an initial coin offering (ICO). The contracts are created in a UTXO based smart contract platform called Ergo that supports transaction trees. 
-%
-%% An example of This is possible if the underlying scripting language supports {\em transaction trees}
-%
-%
-%% blockchain platform called {\em Ergo} that provides Ethereum-like functionality despite being UTXO-based. 
-%This is possible due to a new technique called {\em transaction trees} that can emulate persistent storage in UTXO based systems. We demonstrate this via several examples which include contracts for a Rock-Paper-Scissors game, crowdfunding and an initial coin offering (ICO).
-
 \end{abstract}
 
 
@@ -117,12 +103,6 @@ Smart contracts were envisioned in 1994 by Nick Szabo~\cite{szabo1997idea}, a le
 Bitcoin~\cite{Nak08} can be seen as the first implementation of this concept using a fully decentralized ledger whose contracts primarily pertain to transfer and store of value, i.e., as a currency system. 
 Ethereum~\cite{wood2014ethereum} is an example of a general-purpose smart contract platform. 
 
-\ignore{
-A useful way of representing a smart contract platform is to consider it as a {\em singleton computer}, where only one single-threaded instance exists in the entire world and everyone can use it for storage and computation by writing code in a language that the computer understands.
-Bitcoin's language supports limited types of smart contracts, since its primary design goal was for a currency system. In this way, can think of Bitcoin as an {\em application specific} singleton computer, while Ethereum can be considered a {\em general purpose} singleton computer.
-}
-
-%\subsection{Bitcoin Versus Ethereum}
 The limited application of Bitcoin allows optimizations focussed on long-term survivability and scalability. Firstly, all data and code is stored in short-lived immutable objects (called UTXOs~\cite{utxo}). A user can execute code inside a UTXO by supplying some input (which may contain additional code). A UTXO is destroyed once its code is executed (i.e., it is spent). Secondly, all computation is performed within a {\em local context}; any code pertaining to a UTXO can only operate on data for that UTXO and does not have access to the global state. Finally, the instruction set is limited enough to guarantee that the language is {\em Turing decidable}. In particular, every program of size $n$ terminates in $\Theta(n)$ steps. 
 
 In contrast, Ethereum follows a different set of design principles in which the code and data is contained in long-lived mutable objects called {\em accounts}. This was done because UTXOs are stateless and do not provide persistent storage. 
@@ -130,20 +110,14 @@ Not only can Ethereum code modify data in its own account, but also trigger exec
 Additionally, Ethereum's contract writing language is Turing complete with a cost component: every instruction incurs a non-refundable cost, called {\em gas}, that must be paid beforehand (any still executing contract is reset to its initial stage once the gas runs out). 
 All these features allow sophisticated contracts. However, they also cause several scalability and security issues, which are still being addressed~\cite{Luu:2016:MSC:2976749.2978309,hackernoon17}. 
 
-%Ethereum followed these principles because of the  belief 
-%that 
-%Turing completeness are necessary for a general-purpose singleton computer, and that 
-%immutable objects are not suitable for smart contracts because they lack persistent storage, and thus, cannot encode Turing complete programs. 
 
 Firstly, we note that even the most advanced contracts written in Ethereum do not require Turing completeness~\cite{hackernoon16,hackernoon17}. Nor does being Turing complete imply suitability for writing complex contracts. For example, the Rule 110 \cite{Cook_2009,neary2006p} 
-%and Conway's Game of Life~\cite{rendell2014turing} 
 cellular automation is Turing complete but impractical for real-world use. 
 Secondly, while UTXOs lack persistant storage, we can achieve the same by propagating data across multiple UTXOs using a technique called {\em transaction trees}. 
 This was used to construct a Turing complete language by emulating Rule-110~\cite{CKM18a}.
 
 While the results of~\cite{CKM18a} allow UTXO-based systems to emulate Ethereum-like functionality, at least in theory, a practical solution for the same is desirable. In particular, we need higher-level abstractions (instead of Rule-110) that enable UTXO-based systems to efficiently emulate Ethereum functionality and maintain Bitcoin's scalability. Ergo is one such platform.
 
-%, provided that the underlying contract language supports it
 \textbf{Context Enrichment.} The main idea behing Ergo is that of enriching the local context. In Bitcoin and other UTXO systems, the context is just the UTXO being processed. However, we can have various levels of local contexts.
 In particular, for any UTXO based blockchain, we can define the following levels of context, each extending the previous:
 \begin{enumerate}
@@ -153,18 +127,9 @@ In particular, for any UTXO based blockchain, we can define the following levels
 	\item The current block (other sibling transactions)
 \end{enumerate}
 
-%Assume that the scripting language supports writing predicates using the context variables available at that level. 
-
 Any platform at Level 2 and above is suitable for transaction trees. In this regard, Bitcoin is at Level 1, while Ergo is at Level 3. 
-%particular, if we include more than the UTXOable to support transaction trees by putting the entire spending transaction into the execution context, so that we can encode predicates about other inputs and outputs of the transaction. 
 
 Note that in Level 4 it is not possible to check validity of a transaction independently of other transactions. Hence it is more complex to implement. 
-
-%supports the first three. 
-%Note that we don't go beyond the block because anything other than the current block will require global state access
-%However, in order to support this, the underlying language must be capable of encoding predicates about the entire transaction. 
-
-
 
 In this work we show via examples how to create efficient Ethereum-like contracts in the UTXO model using transaction trees in Ergo. 
 The examples include a Rock-Paper-Scissors game, an Initial Coin Offering (ICO) campaign and a new primitive called {\em reversible addresses} for securely storing funds. The examples show how to create multi-stage contracts with evolving data and demonstrate how Ergo can cover a majority of use-cases where Ethereum is used.  
@@ -175,22 +140,6 @@ The examples include a Rock-Paper-Scissors game, an Initial Coin Offering (ICO) 
 
 Ergo uses Bitcoin's UTXO model but allows general-purpose smart contracts via a highly expressible (but still decidable) language called \langname. Ergo has better scalability than Bitcoin due to additional enahcements such as storage rent~\cite{chepurnoy2018systematic} and support for thin clients that can verify the entire blockchain with only a small amount of data. Unlike Ethereum and most other smart contract platforms which only allow imperative style programs, \langname supports functional programming and its syntax borrows heavily from Scala. 
 
-\ignore{
-Code in functional style is more compact and easier to understand because it focusses on WHAT (i.e., the actual task at hand), while imperative code focusses on HOW (i.e., on the nitty grittys of task). For example, if we want to find out whether there exists at least one black cat, the code in a hypothetical imperative language (such as Solidity in Ethereum) would look something like the following:
-\begin{verbatim}
-    bool found = false;
-    for (int i = 0; i <= cats.size; i++){
-      if (cats[i].color == "black") found = true; 
-    }
-\end{verbatim}
-
-Somewhat equivalent code in \langname's functional style would look like:
-
-\begin{verbatim}
-    def isBlack(cat:Cat) = cat.color == "black"
-    val found = cats.exists(isBlack)
-\end{verbatim}
-}
 
 We refer the reader to \langname resources for details~\cite{langrepo,tutorial,advtutorial}. Here we give only a brief overview.
 Since Ergo follows the UTXO based model, all data and code is stored in immutable objects called {\em boxes}. As in Bitcoin, a transaction in Ergo can spend (destroy) multiple boxes and create new ones. 
@@ -203,7 +152,7 @@ In particular, an \langname program defines the spending condition using predica
 
  
  One useful feature of Ethereum is the ability to store and access a large amount of data, which Ergo also provides.
- % While it is not critical where the data is actually stored, it is important that the data be accessible to the code. 
+ 
  However, Ergo contracts do not store the actual data in the blockchain. Rather, the data is stored offchain and a short digest is stored in the blockchain. A user wishing to access or modify this data must provide correct proofs of (non)-existence or modification for this digest, as in the ICO example of Section~\ref{ico}. 
 
 \section{Transaction Trees}
@@ -275,9 +224,7 @@ A simple loop is a special case of the `if' statement:
     else { out.propositionBytes == SELF.propositionBytes }
 \end{verbatim}
 
-%To handle this case, ...
-
-\textbf{Transaction graphs:} Ergo supports a more advanced technique called {\em transaction graphs}, where cycles are allowed in contract references, as shown below. %and two contracts can refer to each other
+\textbf{Transaction graphs:} Ergo supports a more advanced technique called {\em transaction graphs}, where cycles are allowed in contract references, as shown below. 
 
 	\begin{tikzpicture}
 	
@@ -305,17 +252,7 @@ Discussion of such contracts is beyond the scope of this work and we refer the r
 \section{Multi-Stage Contracts}
 
 This section contains several examples of multi-stage contracts created using transaction trees.
-%For simplicity, our code often refers to another script directly, as in: 
-%\begin{verbatim}
-%    box.propositionBytes = script
-%\end{verbatim}
-%   
-%In practice, however, we would first compute \texttt{scriptHash}, the hash of \texttt{script} and rewrite the above code as: 
-%\begin{verbatim}
-%    blake2b256(box.propositionBytes) == scriptHash
-%\end{verbatim}
 Our first example is the classic Rock-Paper-Scissors game, which is often used to introduce and demonstrate Ethereum's capabilities.
-%to beginners, since it captures many important aspects such as provable fairness, workflow enforcement and adaptive security~\cite{rps15}. 
 
 \subsection{Rock-Paper-Scissors Game}
 \label{rps}
